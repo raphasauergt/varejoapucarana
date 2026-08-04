@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Romaneio do Dia — Painel de Entregas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+
+:root{
+  --bg: #12181a;
+  --panel: #1b2224;
+  --panel-2: #202a2c;
+  --border: #2b3538;
+  --text: #edefea;
+  --text-dim: #93a19d;
+  --text-faint: #5f6d69;
+  --amber: #e8a33d;
+  --amber-dim: #4a3a20;
+  --teal: #4fa491;
+  --teal-dim: #1c3733;
+  --rust: #c1553b;
+  --rust-dim: #3c231d;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+
+body{
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  background-image:
+    radial-gradient(circle at 10% 0%, rgba(232,163,61,0.06), transparent 40%),
+    radial-gradient(circle at 90% 10%, rgba(79,164,145,0.06), transparent 40%);
+  min-height: 100vh;
+  padding-bottom: 40px;
+}
+
+.wrap{ max-width: 1280px; margin: 0 auto; padding: 28px 24px 0; }
+
+/* ===== HEADER ===== */
+header{
+  display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px;
+  padding-bottom: 20px;
+}
+.eyebrow{
+  font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.18em;
+  color: var(--amber); text-transform: uppercase; margin-bottom:8px; display:flex; align-items:center; gap:8px;
+}
+.eyebrow::before{ content:''; width:7px; height:7px; background:var(--amber); border-radius:1px; display:inline-block; }
+h1{
+  font-family:'Oswald', sans-serif; font-weight:700; font-size:40px; letter-spacing:0.01em;
+  text-transform:uppercase; line-height:1;
+}
+h1 span{ color: var(--text-dim); font-weight:400; }
+.header-meta{
+  font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--text-dim); text-align:right;
+  line-height:1.6;
+}
+.header-meta b{ color:var(--text); }
+
+.road-divider{
+  height:2px; width:100%;
+  background-image: repeating-linear-gradient(90deg, var(--amber) 0 18px, transparent 18px 34px);
+  opacity:0.5; margin-bottom: 24px;
+}
+
+/* ===== KPI ROW ===== */
+.kpis{
+  display:grid; grid-template-columns: repeat(6, 1fr); gap:12px; margin-bottom: 28px;
+}
+@media (max-width: 980px){ .kpis{ grid-template-columns: repeat(3, 1fr);} }
+@media (max-width: 560px){ .kpis{ grid-template-columns: repeat(2, 1fr);} }
+.kpi{
+  background: var(--panel); border:1px solid var(--border); border-radius:6px; padding:14px 16px;
+  position:relative; overflow:hidden;
+}
+.kpi::after{
+  content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background: var(--amber);
+}
+.kpi.teal::after{ background: var(--teal); }
+.kpi-label{
+  font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.08em; text-transform:uppercase;
+  color: var(--text-dim); margin-bottom:6px;
+}
+.kpi-value{ font-family:'Oswald', sans-serif; font-size:30px; font-weight:600; }
+
+/* ===== LAYOUT ===== */
+.layout{ display:grid; grid-template-columns: 300px 1fr; gap:20px; align-items:start; }
+@media (max-width: 860px){ .layout{ grid-template-columns: 1fr; } }
+
+.panel{
+  background: var(--panel); border:1px solid var(--border); border-radius:8px; overflow:hidden;
+}
+.panel-head{
+  padding: 14px 16px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+}
+.panel-title{
+  font-family:'Oswald', sans-serif; font-size:14px; letter-spacing:0.06em; text-transform:uppercase; color:var(--text);
+}
+.panel-sub{ font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--text-faint); }
+
+/* sidebar */
+#search-vendedor{
+  width:100%; background: var(--panel-2); border:1px solid var(--border); border-radius:5px;
+  color:var(--text); font-family:'Inter',sans-serif; font-size:13px; padding:9px 10px; outline:none;
+}
+#search-vendedor::placeholder{ color: var(--text-faint); }
+#search-vendedor:focus{ border-color: var(--amber); }
+.sidebar-body{ padding: 10px; max-height: 640px; overflow-y:auto; }
+.vend-item{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:10px 10px; border-radius:5px; cursor:pointer; margin-bottom:3px;
+  border:1px solid transparent;
+}
+.vend-item:hover{ background: var(--panel-2); }
+.vend-item.active{ background: var(--amber-dim); border-color: var(--amber); }
+.vend-name{ font-size:12.5px; line-height:1.3; }
+.vend-item.active .vend-name{ color: var(--amber); font-weight:600; }
+.vend-count{
+  font-family:'IBM Plex Mono', monospace; font-size:11px; color: var(--text-dim);
+  background: var(--panel-2); border:1px solid var(--border); border-radius:20px; padding:2px 8px; min-width:26px; text-align:center;
+}
+.vend-item.active .vend-count{ color: var(--amber); border-color: var(--amber); }
+.vend-item.all{ border-bottom:1px dashed var(--border); border-radius:0; margin-bottom:8px; padding-bottom:14px; }
+
+/* main content */
+#main-panel-body{ padding: 18px; }
+
+/* bar list */
+.barlist{ display:flex; flex-direction:column; gap:9px; }
+.bar-row{ display:grid; grid-template-columns: 150px 1fr 42px; align-items:center; gap:10px; }
+.bar-label{ font-size:12px; color:var(--text-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bar-track{ height:8px; background: var(--panel-2); border-radius:4px; overflow:hidden; }
+.bar-fill{ height:100%; background: linear-gradient(90deg, var(--amber), #f0bd6e); border-radius:4px; }
+.bar-fill.teal{ background: linear-gradient(90deg, var(--teal), #7ecdbc); }
+.bar-num{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--text-dim); text-align:right; }
+
+.grid-2{ display:grid; grid-template-columns: 1fr 1fr; gap:18px; }
+@media (max-width: 700px){ .grid-2{ grid-template-columns: 1fr; } }
+
+.section-title{
+  font-family:'Oswald', sans-serif; font-size:13px; letter-spacing:0.06em; text-transform:uppercase;
+  color: var(--text-dim); margin: 22px 0 12px; display:flex; align-items:center; gap:8px;
+}
+.section-title:first-child{ margin-top:0; }
+.section-title::before{ content:''; width:14px; height:1px; background:var(--amber); display:inline-block; }
+
+/* vendor view kpis */
+.vend-kpis{ display:grid; grid-template-columns: repeat(4,1fr); gap:10px; margin-bottom:18px; }
+@media (max-width:640px){ .vend-kpis{ grid-template-columns: repeat(2,1fr);} }
+.vend-kpi{ background:var(--panel-2); border:1px solid var(--border); border-radius:6px; padding:12px 14px; }
+.vend-kpi .kpi-label{ margin-bottom:4px; }
+.vend-kpi .kpi-value{ font-size:22px; }
+
+/* search box for table */
+.table-tools{ display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
+#search-cliente{
+  flex:1; min-width:200px; background: var(--panel-2); border:1px solid var(--border); border-radius:5px;
+  color:var(--text); font-family:'Inter',sans-serif; font-size:13px; padding:9px 10px; outline:none;
+}
+#search-cliente:focus{ border-color: var(--teal); }
+.count-badge{
+  font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--text-dim);
+  border:1px solid var(--border); border-radius:20px; padding:6px 12px; white-space:nowrap;
+}
+
+/* manifest ticket cards */
+.tickets{ display:flex; flex-direction:column; gap:10px; }
+.ticket{
+  position:relative; background: var(--panel-2); border:1px solid var(--border); border-radius:6px;
+  padding: 14px 16px; display:grid; grid-template-columns: 1fr auto; gap:10px 16px; align-items:center;
+}
+.ticket::before{
+  content:''; position:absolute; left:0; top:8px; bottom:8px; width:0;
+  border-left: 1px dashed var(--border);
+}
+.ticket-main{ padding-left: 12px; }
+.ticket-client{ font-size:14px; font-weight:600; color:var(--text); margin-bottom:3px; }
+.ticket-city{ font-family:'IBM Plex Mono', monospace; font-size:11px; color: var(--teal); text-transform:uppercase; letter-spacing:0.04em; }
+.ticket-meta{
+  font-family:'IBM Plex Mono', monospace; font-size:11px; color: var(--text-faint); margin-top:6px;
+  display:flex; flex-wrap:wrap; gap:4px 14px;
+}
+.ticket-tags{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+.tag{
+  font-family:'IBM Plex Mono', monospace; font-size:10.5px; padding:4px 9px; border-radius:20px;
+  border:1px solid var(--border); color:var(--text-dim); white-space:nowrap;
+}
+.tag.pay{ background: var(--teal-dim); border-color: var(--teal); color:#a9e0d3; }
+.tag.pay.urgent{ background: var(--rust-dim); border-color: var(--rust); color:#f0a894; }
+.tag.nf{ background: var(--amber-dim); border-color: var(--amber); color:#f5cf94; }
+
+.empty-state{ padding: 40px 10px; text-align:center; color: var(--text-faint); font-family:'IBM Plex Mono', monospace; font-size:12.5px; }
+
+::-webkit-scrollbar{ width:8px; }
+::-webkit-scrollbar-thumb{ background: var(--border); border-radius:4px; }
+::-webkit-scrollbar-track{ background: transparent; }
+
+/* ===== MUFFATO PANEL ===== */
+.muffato-panel{
+  border:1px solid var(--amber); border-radius:8px; overflow:hidden; margin-top:22px;
+  background: linear-gradient(180deg, var(--amber-dim), var(--panel-2) 40%);
+}
+.muffato-header{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;
+  padding: 12px 16px; border-bottom:1px solid rgba(232,163,61,0.3);
+}
+.muffato-title{
+  font-family:'Oswald', sans-serif; font-size:13px; letter-spacing:0.06em; text-transform:uppercase; color: var(--amber);
+}
+.muffato-stats{ font-family:'IBM Plex Mono', monospace; font-size:11px; color: var(--text-dim); }
+.muffato-list{ padding: 4px 0; }
+.muffato-row{
+  display:flex; align-items:center; gap:12px; padding:9px 16px;
+  border-bottom:1px solid rgba(255,255,255,0.04);
+  font-size:12.5px;
+}
+.muffato-row:last-child{ border-bottom:none; }
+.muffato-row:hover{ background: rgba(255,255,255,0.02); }
+.muffato-plate{
+  font-family:'IBM Plex Mono', monospace; font-size:11.5px; font-weight:600; color: var(--amber);
+  background: rgba(232,163,61,0.12); border:1px solid rgba(232,163,61,0.35); border-radius:4px;
+  padding:3px 8px; white-space:nowrap; flex-shrink:0;
+}
+.muffato-info{
+  flex:1; min-width:0; color: var(--text-dim); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.muffato-info b{ color: var(--text); font-weight:600; }
+.muffato-nf{
+  font-family:'IBM Plex Mono', monospace; font-size:10.5px; color: var(--text-faint);
+  flex-shrink:0; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  cursor: help; text-align:right;
+}
+@media (max-width: 720px){
+  .muffato-row{ flex-wrap:wrap; }
+  .muffato-info{ white-space:normal; order:3; width:100%; }
+  .muffato-nf{ max-width:none; }
+}
+
+/* ===== TOOLBAR (export buttons, compact, top of page) ===== */
+.toolbar-top{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  padding: 10px 0 16px;
+}
+.toolbar-label{
+  font-family:'IBM Plex Mono', monospace; font-size:10px; letter-spacing:0.1em; text-transform:uppercase;
+  color: var(--text-faint); margin-right:2px;
+}
+.toolbar-sep{ width:1px; height:18px; background: var(--border); margin: 0 2px; }
+.btn-export{
+  font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.02em;
+  background: var(--panel-2); border:1px solid var(--border); color:var(--text);
+  border-radius:5px; padding:7px 12px; cursor:pointer; display:flex; align-items:center; gap:6px;
+  transition: border-color .15s, color .15s; white-space:nowrap;
+}
+.btn-export:hover{ border-color: var(--amber); color: var(--amber); }
+.btn-export.teal:hover{ border-color: var(--teal); color: var(--teal); }
+.btn-export svg{ width:12px; height:12px; flex-shrink:0; }
+.btn-export:disabled{ opacity:0.5; cursor:wait; }
+.pdf-select{
+  font-family:'IBM Plex Mono', monospace; font-size:11px; background: var(--panel-2);
+  border:1px solid var(--border); color:var(--text); border-radius:5px; padding:7px 8px;
+  outline:none; max-width:200px;
+}
+.pdf-select:focus{ border-color: var(--amber); }
+
+/* ===== RESPONSIVE: TABLET / MOBILE ===== */
+@media (max-width: 720px){
+  .wrap{ padding: 18px 14px 0; }
+  h1{ font-size:28px; }
+  .header-meta{ text-align:left; font-size:11px; }
+  .kpi-value{ font-size:24px; }
+  .bar-row{ grid-template-columns: 96px 1fr 34px; gap:8px; }
+  .bar-label{ font-size:11px; }
+  .ticket{ grid-template-columns: 1fr; }
+  .ticket-tags{ flex-direction:row; align-items:center; justify-content:flex-start; }
+  .vend-kpis{ grid-template-columns: repeat(2,1fr); }
+  .sidebar-body{ max-height: 320px; }
+  footer{ padding: 0 14px; }
+}
+@media (max-width: 420px){
+  h1{ font-size:23px; }
+  .eyebrow{ font-size:10px; }
+  .kpis{ grid-template-columns: repeat(2,1fr); }
+  .toolbar-top{ width:100%; }
+  .toolbar-sep{ display:none; }
+  .pdf-select{ max-width:none; flex:1; }
+  .btn-export{ flex:1; justify-content:center; }
+}
+
+footer{
+  max-width:1280px; margin: 30px auto 0; padding: 0 24px; font-family:'IBM Plex Mono', monospace;
+  font-size:11px; color: var(--text-faint); border-top:1px solid var(--border); padding-top:16px;
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">Painel de Entregas · Uso Interno</div>
+      <h1>Romaneio do Dia <span id="date-label"></span></h1>
+    </div>
+    <div class="header-meta" id="header-meta"></div>
+  </header>
+
+  <div class="toolbar-top">
+    <span class="toolbar-label">PDF</span>
+    <select id="select-veiculo" class="pdf-select"></select>
+    <button class="btn-export" id="btn-pdf-veiculo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h13"/></svg>
+      Por Veículo
+    </button>
+    <span class="toolbar-sep"></span>
+    <select id="select-vendedor" class="pdf-select"></select>
+    <button class="btn-export teal" id="btn-pdf-vendedor">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+      Por Vendedor
+    </button>
+  </div>
+
+  <div class="road-divider"></div>
+
+  <div id="status-banner" style="display:none; margin-bottom:16px; padding:10px 14px; border-radius:6px; font-family:'IBM Plex Mono', monospace; font-size:11.5px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;"></div>
+
+  <div id="loading-state" style="padding:60px 10px; text-align:center; color:var(--text-dim); font-family:'IBM Plex Mono', monospace; font-size:13px;">Carregando dados do romaneio...</div>
+
+  <div id="dashboard-content" style="display:none;">
+  <div class="kpis" id="kpi-row"></div>
+
+  <div class="layout">
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Vendedores</div>
+          <div class="panel-sub" id="vend-panel-sub"></div>
+        </div>
+      </div>
+      <div style="padding:12px 12px 0;">
+        <input id="search-vendedor" type="text" placeholder="Buscar vendedor...">
+      </div>
+      <div class="sidebar-body" id="vend-list"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title" id="main-title">Visão Geral</div>
+          <div class="panel-sub" id="main-sub"></div>
+        </div>
+      </div>
+      <div id="main-panel-body"></div>
+    </div>
+  </div>
+  </div>
+
+  <footer>
+    Fonte: planilha de romaneio de entregas (VAREJO_08_07) · <span id="footer-count"></span> registros · Painel gerado automaticamente para orientação da equipe comercial.
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script>
+// ======= CONFIGURAÇÃO =======
+// Cole aqui o link CSV publicado da sua planilha do Google Sheets (File > Compartilhar > Publicar na Web > CSV).
+// As colunas do CSV devem ter exatamente estes nomes (iguais ao romaneio original):
+// FILIAL, NR_ROMANEIO, NR_NF, PEDIDO, DS_TRANSP, DS_MOTORISTA, PLACA, DS_CLIENTE, CIDADE, NOME_VENDEDOR, COND_PGTO_CLIENTE
+// Deixe vazio ('') para usar os dados de exemplo (08/07) em modo offline.
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTVL1GGw_I6-dane4Cs59Crw3gtQQ4NzUNEgk7Gm6EH_a9nyFGbRtwlwOAvdZIsJFbuCDvGsKRZgXEB/pub?gid=0&single=true&output=csv';
+
+const DATA_FALLBACK = [{"NR_ROMANEIO": 3091901, "NR_NF": 186019, "PEDIDO": 192159, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "INOUE & SEIDI LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186020, "PEDIDO": 192173, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "OGGI ALIMENTOS CONGELADOS LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186021, "PEDIDO": 192253, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "JUNIORS RESTAURANTE LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186022, "PEDIDO": 192299, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "CONDOR SUPER CENTER LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - 40 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186023, "PEDIDO": 191881, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "WELLINGTON LUIZ CLARO RESTAURANTE CHINES", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186024, "PEDIDO": 192214, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "T.S.C. CONVENIENCIA LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186025, "PEDIDO": 192163, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "C T S COMERCIO DE CARNES LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186026, "PEDIDO": 192290, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "R.A CAIRES DISTRIBUIDORA DE CARNES ME", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 7,14,21 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186027, "PEDIDO": 192280, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "REDESUL - ASSOCIACAO DA REDE DE SUPERMERCADOS UNIDOS DE LOND", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186028, "PEDIDO": 192208, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "R B F COMERCIO ATACADISTA DE CARNES EIRELI - ME", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186029, "PEDIDO": 191989, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "27.928.032 CRISTIANO MARTINS DA SILVA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186030, "PEDIDO": 192284, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "M. A. SOARES COMERCIO DE PRODUTOS ALIMENTICIOS LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186031, "PEDIDO": 192142, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "EDNALVA FELIX DA SILVA LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186032, "PEDIDO": 192228, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "SUPERMERCADO PEROLA LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186033, "PEDIDO": 191990, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "MERCADO DAS AMERICAS LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "OCTAVIO AUGUSTO LONGO", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186034, "PEDIDO": 192283, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "M A SOARES COMERCIO DE PRODUTOS ALIMENTICIOS LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186035, "PEDIDO": 192197, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "MAFFEI E ARAUJO MINIMERCADO LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186036, "PEDIDO": 192094, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "ANDERSON COSTA COMERCIO DE ALIMENTOS LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3091901, "NR_NF": 186037, "PEDIDO": 192039, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "GUILHERME PARIZI KAUFMANN", "PLACA": "AXU9F69", "DS_CLIENTE": "POLIANA CAROLINA DE AGUIRRA - COMERCIO DE ALIMENTOS", "CIDADE": "IBIPORA", "NOME_VENDEDOR": "OCTAVIO AUGUSTO LONGO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186119, "PEDIDO": 191879, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "DEVARA & BEZERRA MERCADO LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186120, "PEDIDO": 192238, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "MINI MERCADO MAFFEI LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186121, "PEDIDO": 192254, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "QUIOSQUE 43 - COMERCIO DE BEBIDAS LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186122, "PEDIDO": 192242, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "MERCADO DECOLORES LTDA ME", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14,21,28 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186123, "PEDIDO": 192227, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "MINI MERCADO MAFFEI LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186124, "PEDIDO": 191958, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "ANTONIO CARLOS DE FREITAS ROCHA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186125, "PEDIDO": 191974, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "AJM MARTINS RESTAURANTE E LANCHONETE LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186126, "PEDIDO": 192135, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "ALVARES & CAMILLO LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186127, "PEDIDO": 192089, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "CASA DE CARNES OLIVEIRA E MARTINS LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186128, "PEDIDO": 192210, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "SUPERMERCADO MONTREAL COMERCIO DE PRODUTOS ALIMENTICIOS LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186129, "PEDIDO": 192167, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "VALDECIR ALCINO TOLENTINO", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186130, "PEDIDO": 192236, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "DEVALDO PEDROSA SUPERMERCADO", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186131, "PEDIDO": 192225, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "MINI MERCADO MAFFEI LTDA", "CIDADE": "CAMBE", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186132, "PEDIDO": 191884, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "RESTAURANTE SABOR DICASA LTDA", "CIDADE": "CAMBE", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "-"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186133, "PEDIDO": 192147, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "RESTAURANTE SABOR DICASA LTDA", "CIDADE": "CAMBE", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "-"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186134, "PEDIDO": 192272, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "ROSANA MARTINS DE OLIVEIRA 96548908953", "CIDADE": "CAMBE", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186135, "PEDIDO": 192104, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "NOGUEIRA & TINPH LTDA", "CIDADE": "CAMBE", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186136, "PEDIDO": 192141, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "S. SUPERMERCADO LTDA", "CIDADE": "CAMBE", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186137, "PEDIDO": 192194, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "D. K. C. PRODUCAO DE PRODUTOS ALIMENTICIOS LTDA", "CIDADE": "CAMBE", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186138, "PEDIDO": 192190, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "PIZZA EXPRESS SANTO AMARO LTDA", "CIDADE": "CAMBE", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186139, "PEDIDO": 192206, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "PIZZA EXPRESS BR LTDA", "CIDADE": "CAMBE", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186141, "PEDIDO": 192040, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "MERCADO VALLARINI LTDA", "CIDADE": "CAMBE", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186142, "PEDIDO": 192213, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "K. SOUZA DE SIQUEIRA - MERCADO", "CIDADE": "CAMBE", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3092001, "NR_NF": 186143, "PEDIDO": 192271, "DS_TRANSP": "WDB TRANSPORTES LTDA", "DS_MOTORISTA": "WESLEI DIAS BORGES", "PLACA": "AYI3G68", "DS_CLIENTE": "TOSCANO GRILL RESTAURANTE LTDA", "CIDADE": "CAMBE", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186061, "PEDIDO": 191997, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186062, "PEDIDO": 192234, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "KI-GOSTOSO LANCHES LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14,19 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186062, "PEDIDO": 192234, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "KI-GOSTOSO LANCHES LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14,19 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186063, "PEDIDO": 191925, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "SAO MIGUEL ALIMENTOS LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14,21,28 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186064, "PEDIDO": 192179, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "COMERCIO DE GENEROS ALIMENTICIOS SCAA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 26 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186065, "PEDIDO": 192217, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "COMERCIO DE GENEROS ALIMENTICIOS SCAA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 26 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186066, "PEDIDO": 192006, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "P CAMPOS JUNIOR - COMERCIO DE ALIMENTOS - ME", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186067, "PEDIDO": 191592, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "CLAUDECIR CONTI ACOUGUE", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14,19 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186068, "PEDIDO": 192270, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "SUPERMERCADO VENEZA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 26 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186069, "PEDIDO": 192216, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "COMERCIO DE CARNES PEPELIO LTDA.", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 7,14,21 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186070, "PEDIDO": 191526, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "GCA - DISTRIBUIDORA COMERCIAL DE ALIMENTOS LTDA", "CIDADE": "MANDAGUACU", "NOME_VENDEDOR": "JULIANA CASTRO DO NASCIMENTO", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186071, "PEDIDO": 191832, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "GCA - DISTRIBUIDORA COMERCIAL DE ALIMENTOS LTDA", "CIDADE": "MANDAGUACU", "NOME_VENDEDOR": "JULIANA CASTRO DO NASCIMENTO", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186072, "PEDIDO": 191834, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "GCA - DISTRIBUIDORA COMERCIAL DE ALIMENTOS LTDA", "CIDADE": "MANDAGUACU", "NOME_VENDEDOR": "JULIANA CASTRO DO NASCIMENTO", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186073, "PEDIDO": 191874, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "JOSE ALEXANDRE ROSA RESTAURANTE LTDA", "CIDADE": "MANDAGUACU", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186074, "PEDIDO": 192136, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "BATISTA & IZEPE LTDA", "CIDADE": "MANDAGUACU", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186075, "PEDIDO": 192245, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "RESTAURANTE CHALE DOS LAGOS LTDA", "CIDADE": "MANDAGUACU", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186076, "PEDIDO": 192277, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "LUIZ HENRIQUE DOS SANTOS SALMASO", "CIDADE": "MANDAGUACU", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - DEPOSITO ANTECIPADO"}, {"NR_ROMANEIO": 3092101, "NR_NF": 186077, "PEDIDO": 192069, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "JOSEILTON RODRIGUES CARDOSO", "PLACA": "AZU2043", "DS_CLIENTE": "JOSE BORGES GONCALVES", "CIDADE": "INDIANOPOLIS", "NOME_VENDEDOR": "LUIZ HENRIQUE DOS SANTOS SALMASO", "COND_PGTO_CLIENTE": "R - ZE BORGES"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186038, "PEDIDO": 191950, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "56.345.942 ROSIMERI DA SILVA PECORARE VIEIRA", "CIDADE": "MARIALVA", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186039, "PEDIDO": 192005, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "FANTIM & ORIENTE LTDA", "CIDADE": "MARIALVA", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186040, "PEDIDO": 191995, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186041, "PEDIDO": 192117, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "BATISTA & IZEPE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186042, "PEDIDO": 192118, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "BATISTA & IZEPE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186043, "PEDIDO": 192244, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "MESTRE DAS CARNES CASA DE CARNES LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 23 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186044, "PEDIDO": 192025, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "ROSANGELA DE FATIMA GOMES SANTOS 77356497972", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186045, "PEDIDO": 192113, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "SUPERMERCADOS J S NICOLA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186046, "PEDIDO": 191942, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "GH LIMA COMERCIO DE PRODUTOS ALIMENTICIOS LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186047, "PEDIDO": 192131, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "BATISTA & IZEPE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186048, "PEDIDO": 192066, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "J GONCALVES ZIGANTE LANCHONETE", "CIDADE": "SARANDI", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186049, "PEDIDO": 192221, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "GNOATTO & GNOATTO LTDA", "CIDADE": "SARANDI", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186050, "PEDIDO": 191953, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "SARANDI", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "-"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186051, "PEDIDO": 192087, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "F R DE LIMA MINIMERCADO", "CIDADE": "SARANDI", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186052, "PEDIDO": 191878, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "MARIA JOSE DOS SANTOS LTDA", "CIDADE": "SARANDI", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186053, "PEDIDO": 191960, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "GH SUPERMERCADO LTDA", "CIDADE": "SARANDI", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186054, "PEDIDO": 191996, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "G M DOS SANTOS ACOUGUE", "CIDADE": "SARANDI", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186055, "PEDIDO": 192116, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "BATISTA & IZEPE LTDA", "CIDADE": "SARANDI", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186056, "PEDIDO": 192053, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "PANIFICADORA EDILAINE LTDA", "CIDADE": "SARANDI", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186057, "PEDIDO": 191589, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "TALES MERCADO LTDA", "CIDADE": "SARANDI", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "-"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186058, "PEDIDO": 191548, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "V V DA SILVA MERCEARIA", "CIDADE": "SARANDI", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186059, "PEDIDO": 192123, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "BORSOI & MILAO COMERCIO DE CARNES LTDA", "CIDADE": "SARANDI", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092201, "NR_NF": 186060, "PEDIDO": 191954, "DS_TRANSP": "DODO TRANSPORTES LTDA", "DS_MOTORISTA": "RAFAEL ARANDA MAZOQUIM", "PLACA": "ASR9G14", "DS_CLIENTE": "SABOR BRASIL SARANDI LTDA", "CIDADE": "SARANDI", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186092, "PEDIDO": 191907, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "P. AUGUSTO REZENDE & CIA. LTDA", "CIDADE": "PEABIRU", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186093, "PEDIDO": 191903, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "ALECRIM BISTRO LTDA", "CIDADE": "ENGENHEIRO BELTRÃO", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186094, "PEDIDO": 191985, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "REDE FORNETTO DELIVERY LTDA", "CIDADE": "ENGENHEIRO BELTRAO", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186095, "PEDIDO": 192013, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "GRAN FORNETTO PIZZARIA LTDA", "CIDADE": "CAMPO MOURAO", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186096, "PEDIDO": 192064, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "RESTAURANTE E MARMITARIA CHURRAS GRILL LTDA", "CIDADE": "CAMPO MOURAO", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186097, "PEDIDO": 192155, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "CAMPO MOURAO", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186098, "PEDIDO": 192032, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "A MARQUES E IRMAOS LTDA", "CIDADE": "CAMPO MOURAO", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186099, "PEDIDO": 191999, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "CASA DE CARNES CENTRAL LTDA", "CIDADE": "CAMPO MOURAO", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186100, "PEDIDO": 192246, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "CASA DE CARNES CENTRAL LTDA", "CIDADE": "CAMPO MOURAO", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186101, "PEDIDO": 192012, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "L M DA CRUZ MARMITARIA", "CIDADE": "CAMPO MOURAO", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186102, "PEDIDO": 192028, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "GILSON DA SILVA GOMES", "CIDADE": "FAROL", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186103, "PEDIDO": 192065, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "51.522.918 MATHEUS PRIMAK RENISZ", "CIDADE": "FAROL", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "-"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186104, "PEDIDO": 192015, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "SUPER FORNETTO PIZZARIA LTDA", "CIDADE": "GOIOERE", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186105, "PEDIDO": 191316, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "SUPERMERCADO SANTA MARIA LTDA", "CIDADE": "MOREIRA SALES", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 14,28 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186106, "PEDIDO": 192016, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "DYOMI DIAS TORTOLA & CIA. LTDA.", "CIDADE": "MOREIRA SALES", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186107, "PEDIDO": 192017, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "LL S KONO - MERCEARIA LTDA", "CIDADE": "MOREIRA SALES", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186108, "PEDIDO": 192018, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "PAULO SERGIO CASTILHO", "CIDADE": "MOREIRA SALES", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186109, "PEDIDO": 192030, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "LOMBA & PICONE LTDA", "CIDADE": "MOREIRA SALES", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186110, "PEDIDO": 192021, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "SUPERMERCADO LEPERES E COELHO E ROLIM LTDA", "CIDADE": "JANIOPOLIS", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186111, "PEDIDO": 192023, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "L.P.DE OLIVEIRA & CIA LTDA", "CIDADE": "JANIOPOLIS", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186112, "PEDIDO": 192108, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "G R F COSTA - DISTRIBUIDORA DE CARNES LTDA", "CIDADE": "JANIOPOLIS", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186113, "PEDIDO": 192126, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "SABOR DA CASA MINI MERCADO E RESTAURANTE LTDA", "CIDADE": "JANIOPOLIS", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186114, "PEDIDO": 191319, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "V J PERIN & CIA LTDA", "CIDADE": "BOA ESPERANCA", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186115, "PEDIDO": 192019, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "MERCADO TIZIL LTDA", "CIDADE": "BOA ESPERANCA", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186116, "PEDIDO": 192031, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "V J PERIN & CIA LTDA", "CIDADE": "BOA ESPERANCA", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186117, "PEDIDO": 192033, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "D ZANIN", "CIDADE": "BOA ESPERANCA", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 12 DIAS"}, {"NR_ROMANEIO": 3092301, "NR_NF": 186118, "PEDIDO": 192110, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "FUN2F74", "DS_CLIENTE": "PASTI E COSTA LTDA", "CIDADE": "BOA ESPERANCA", "NOME_VENDEDOR": "ALEXANDRE RODRIGUES DE ANDRADE", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185906, "PEDIDO": 191400, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "SUPERMERCADO ALVES LTDA", "CIDADE": "PRESIDENTE CASTELO BRANCO", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185907, "PEDIDO": 191944, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "S R FLAUZINO", "CIDADE": "PRESIDENTE CASTELO BRANCO", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185908, "PEDIDO": 191484, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "M. R. COMERCIO DE FRIOS LTDA", "CIDADE": "NOVA ESPERANCA", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R - 21,28,35 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185909, "PEDIDO": 191926, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "TASMATE COMERCIO E DISTRIBUIDORA DE ALIMENTOS LTDA", "CIDADE": "NOVA ESPERANCA", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14,19,26,33 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185910, "PEDIDO": 191984, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "JOSE TADEU ALVES", "CIDADE": "NOVA ESPERANCA", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185911, "PEDIDO": 192044, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "R. J. GAZOLLA LTDA", "CIDADE": "NOVA ESPERANCA", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185912, "PEDIDO": 192046, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "SUPERMERCADOS SENNA LTDA", "CIDADE": "NOVA ESPERANCA", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185913, "PEDIDO": 192128, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "SUPERMERCADO ALVES LTDA", "CIDADE": "NOVA ESPERANCA", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185914, "PEDIDO": 192164, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "SUPERMERCADO ALVES LTDA", "CIDADE": "NOVA ESPERANCA", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185915, "PEDIDO": 192279, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "RESTAURANTE JANGADA V LTDA", "CIDADE": "NOVA ESPERANCA", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R - 5 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185916, "PEDIDO": 192077, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "IZAEL INACIO DA SILVA 17453399904", "CIDADE": "UNIFLOR", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185917, "PEDIDO": 191690, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "FAMILIA MORETTI SUPERMERCADO LTDA", "CIDADE": "CRUZEIRO DO SUL", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185918, "PEDIDO": 192047, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "GUSTAVO ITO NIRO", "CIDADE": "PARANACITY", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185918, "PEDIDO": 192047, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "GUSTAVO ITO NIRO", "CIDADE": "PARANACITY", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185919, "PEDIDO": 192050, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "MERCADINHO DO ANDI LTDA", "CIDADE": "PARANACITY", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185920, "PEDIDO": 192062, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "18.053.283 NEIDE FRANCISCA DE OLIVEIRA MACHADO", "CIDADE": "PARANACITY", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "-"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185921, "PEDIDO": 192055, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "21.446.958 IOLANDA VENTURA BISCOLA", "CIDADE": "SAO JOAO DO CAIUA", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092401, "NR_NF": 185922, "PEDIDO": 192084, "DS_TRANSP": "GO LOG TRANSPORTES RAPIDOS LTDA", "DS_MOTORISTA": "RAFAEL AUGUSTO URIAS", "PLACA": "JQZ0D16", "DS_CLIENTE": "ROTEIRO COMERCIO DE PRODUTOS ALIMENTICIOS LTDA", "CIDADE": "SAO JOAO DO CAIUA", "NOME_VENDEDOR": "JONATAS WESLEY RODRIGUES DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185923, "PEDIDO": 191236, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "J MARTINS SUPERMERCADOS PLANALTO LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185924, "PEDIDO": 191896, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "L J DE OLIVEIRA RESTAURANTE", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185925, "PEDIDO": 191239, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "J.MARTINS, SUPERMERCADOS PLANALTO LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185926, "PEDIDO": 192090, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "H. P. MERCADO LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185927, "PEDIDO": 191895, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "PIZZARIA O FORNO LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185928, "PEDIDO": 191046, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "DIEGO DE AVILA PAES DISTRIBUIDORA DE ALIMENTOS", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185929, "PEDIDO": 191047, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "DIEGO DE AVILA PAES DISTRIBUIDORA DE ALIMENTOS", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185930, "PEDIDO": 192199, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "DIEGO DE AVILA PAES DISTRIBUIDORA DE ALIMENTOS", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185931, "PEDIDO": 191238, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "J MARTINS SUPERMERCADOS PLANALTO LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185932, "PEDIDO": 192161, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "MERCADO DA CARNE UMUARAMA LTDA.", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "-"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185933, "PEDIDO": 192212, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "VIVIAN & CIA LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185933, "PEDIDO": 192212, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "VIVIAN & CIA LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185934, "PEDIDO": 191920, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "RODRIGUES CARNES NOBRES LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185935, "PEDIDO": 191241, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "J MARTINS SUPERMERCADOS PLANALTO LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185936, "PEDIDO": 192193, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "M F C SUPERMERCADOS LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185937, "PEDIDO": 192209, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "SUPERMERCADO TUKA LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19,21 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185938, "PEDIDO": 192219, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "MERCADO MACHADO DE UMUARAMA LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185939, "PEDIDO": 191237, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "J MARTINS SUPERMERCADOS PLANALTO LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185940, "PEDIDO": 191435, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185941, "PEDIDO": 192195, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "H. P. MERCADO LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185942, "PEDIDO": 192235, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "SUPERMERCADO GONCALVES LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185943, "PEDIDO": 191982, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "VALDECI MIRANDA PEREIRA MERCEARIA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185944, "PEDIDO": 192082, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "J A S FRANCISQUINI ME", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185945, "PEDIDO": 192188, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "H. P. MERCADO LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185946, "PEDIDO": 192092, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "H. P. MERCADO LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185947, "PEDIDO": 191919, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "PRA MIX SUPERMERCADO LTDA", "CIDADE": "UMUARAMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185948, "PEDIDO": 192008, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "M VECHIATO MERCADO", "CIDADE": "XAMBRÊ", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14,19 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185948, "PEDIDO": 192008, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "M VECHIATO MERCADO", "CIDADE": "XAMBRÊ", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14,19 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185949, "PEDIDO": 192009, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "RODRIGO BERGAMASCO REBELO LTDA", "CIDADE": "XAMBRE", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14,19 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185950, "PEDIDO": 192078, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "58.071.062 JERSON LUIZ COSTA", "CIDADE": "XAMBRE", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185951, "PEDIDO": 192156, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "MITSUHASHI & MITSUHASHI LTDA", "CIDADE": "XAMBRE", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185952, "PEDIDO": 191893, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "JOAO LAERZIO MANDUCA", "CIDADE": "PEROBAL", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 7,14,21 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185952, "PEDIDO": 191893, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "JOAO LAERZIO MANDUCA", "CIDADE": "PEROBAL", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 7,14,21 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185953, "PEDIDO": 192038, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "J RODRIGUES", "CIDADE": "PEROBAL", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092601, "NR_NF": 185954, "PEDIDO": 192086, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "JULIO CEZAR BORGES DE SOUZA", "PLACA": "MMJ1A16", "DS_CLIENTE": "CASA DE CARNES BOI NELORE LTDA", "CIDADE": "PEROBAL", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186170, "PEDIDO": 191304, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "M DE SOUZA CRAVEIRO & CRAVEIRO LTDA", "CIDADE": "CIANORTE", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186171, "PEDIDO": 191440, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "CIANORTE", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186172, "PEDIDO": 191987, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "O.M. LEAL RESTAURANTE LTDA.", "CIDADE": "CIANORTE", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186173, "PEDIDO": 191911, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "C ALVES DA SILVA SOUZA LTDA", "CIDADE": "CIANORTE", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186174, "PEDIDO": 191983, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "C ALVES DA SILVA SOUZA LTDA", "CIDADE": "CIANORTE", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186175, "PEDIDO": 191909, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "MERCADO ARAUCARIA LTDA", "CIDADE": "CIANORTE", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 14,21,28 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186176, "PEDIDO": 191419, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "J C PARRO & CIA LTDA", "CIDADE": "CIANORTE", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186177, "PEDIDO": 192111, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "A. APARECIDO EGEIA LTDA", "CIDADE": "SAO MANOEL DO PARANA", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186178, "PEDIDO": 191912, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "SILAS MARTIN & SIDNEY MARTIN LTDA", "CIDADE": "SAO TOME", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186179, "PEDIDO": 191915, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "ALIMENTICIOS POLPETA LTDA", "CIDADE": "SAO TOME", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186180, "PEDIDO": 191348, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "VALDIR ROSSETTO & CIA LTDA", "CIDADE": "JAPURA", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186181, "PEDIDO": 191905, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "VALDIR ROSSETTO & CIA LTDA", "CIDADE": "JAPURA", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186182, "PEDIDO": 191908, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "ALBERICO & ALBERICO LTDA", "CIDADE": "JAPURA", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186183, "PEDIDO": 191414, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "SUPERMERCADO ROMERO LTDA", "CIDADE": "JUSSARA", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 21,28 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186183, "PEDIDO": 191414, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "SUPERMERCADO ROMERO LTDA", "CIDADE": "JUSSARA", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 21,28 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186184, "PEDIDO": 191322, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "M G P S SUPERMERCADO LTDA", "CIDADE": "INDIANOPOLIS", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186185, "PEDIDO": 191901, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "SUPERMERCADO IRMAOS MAIA LTDA", "CIDADE": "INDIANOPOLIS", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186186, "PEDIDO": 191902, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "CHICARELLI SANTOS LTDA", "CIDADE": "INDIANOPOLIS", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186187, "PEDIDO": 191943, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "RODONUTRI DISTRIBUIDORA DE ALIMENTOS LTDA", "CIDADE": "INDIANOPOLIS", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - DEPOSITO ANTECIPADO"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186188, "PEDIDO": 191585, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "VENDRAMINI FILHOS LTDA", "CIDADE": "TERRA BOA", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 28,35 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186189, "PEDIDO": 191914, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "VALDINEI ANTONIO PETENASSI MERCADO", "CIDADE": "TERRA BOA", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186190, "PEDIDO": 191957, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "VENDRAMINI FILHOS LTDA", "CIDADE": "TERRA BOA", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 28,35 DIAS"}, {"NR_ROMANEIO": 3092701, "NR_NF": 186190, "PEDIDO": 191957, "DS_TRANSP": "V C - TRANSPORTE LTDA.", "DS_MOTORISTA": "RAFAEL BRUNO COMO", "PLACA": "QIU3C76", "DS_CLIENTE": "VENDRAMINI FILHOS LTDA", "CIDADE": "TERRA BOA", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 28,35 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185840, "PEDIDO": 191398, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "FIOR & FIOR LTDA", "CIDADE": "FLORAI", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185841, "PEDIDO": 191986, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "SUPERMERCADO FAMILIAO LTDA", "CIDADE": "FLORAI", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185842, "PEDIDO": 192034, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "DIEGO DA SILVA FERNANDES LTDA", "CIDADE": "FLORAI", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "-"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185843, "PEDIDO": 192220, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "SUPERMERCADO FAMILIAO LTDA", "CIDADE": "FLORAI", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185844, "PEDIDO": 192281, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "FIOR & FIOR LTDA", "CIDADE": "FLORAI", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185845, "PEDIDO": 192026, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "PAULO MORENO & IRMAOS LTDA EPP", "CIDADE": "SÃO JORGE DO IVAÍ", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185845, "PEDIDO": 192026, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "PAULO MORENO & IRMAOS LTDA EPP", "CIDADE": "SÃO JORGE DO IVAÍ", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185846, "PEDIDO": 192093, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "FARDIN & FARDIN LTDA", "CIDADE": "SAO JORGE DO IVAI", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185847, "PEDIDO": 192252, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "I T S FERBONI CARNES", "CIDADE": "SAO JORGE DO IVAI", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185848, "PEDIDO": 192257, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "CASA DE CARNES IVAI LTDA", "CIDADE": "SAO JORGE DO IVAI", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185849, "PEDIDO": 192261, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "ANDERSON ANDRE BIONDO - RESTAURANTE", "CIDADE": "SAO JORGE DO IVAI", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185850, "PEDIDO": 191339, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "CUSTODIO FERREIRA E CIA LTDA", "CIDADE": "DOURADINA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185851, "PEDIDO": 191340, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "CUSTODIO FERREIRA E CIA LTDA", "CIDADE": "DOURADINA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185852, "PEDIDO": 191924, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "RONQUI ALIMENTOS LTDA", "CIDADE": "DOURADINA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185853, "PEDIDO": 192100, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "CABRAL, SANTOS E CIA. LTDA", "CIDADE": "DOURADINA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185854, "PEDIDO": 192198, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "HOTEL E RESTAURANTE HARMONIA LTDA", "CIDADE": "DOURADINA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185855, "PEDIDO": 192204, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "LUIZ CARLOS SOBRINHO -ME", "CIDADE": "NOVA OLÍMPIA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185856, "PEDIDO": 191941, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "LDA SUPERMERCADO LTDA", "CIDADE": "ALTO PARAISO", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185857, "PEDIDO": 191861, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "LDA SUPERMERCADO LTDA", "CIDADE": "ICARAIMA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185858, "PEDIDO": 191318, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "RAMIM & SOUZA LTDA", "CIDADE": "SAO CARLOS DO IVAI", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 14,19 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185859, "PEDIDO": 191198, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "R. PARRO LTDA", "CIDADE": "PARAISO DO NORTE", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 21,28,35 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185860, "PEDIDO": 191321, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "SUPERMERCADO CARLUCCIO PARAISO LTDA", "CIDADE": "PARAISO DO NORTE", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185861, "PEDIDO": 192042, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "SUPERMERCADO CARLUCCIO PARAISO LTDA", "CIDADE": "PARAISO DO NORTE", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185862, "PEDIDO": 192043, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "E C XAVIER & CIA LTDA", "CIDADE": "PARAISO DO NORTE", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185863, "PEDIDO": 192085, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "SUPERMERCADO BOM PRECO LTDA", "CIDADE": "PARAISO DO NORTE", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185864, "PEDIDO": 192258, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "R PARRO LTDA", "CIDADE": "PARAISO DO NORTE", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 21,28,35 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185865, "PEDIDO": 191324, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "MIAN & GUELFI LTDA", "CIDADE": "RONDON", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185866, "PEDIDO": 192041, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "MARCIEL VENDRAMINI", "CIDADE": "RONDON", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185867, "PEDIDO": 192045, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "SUPERMERCADO GRAN VALLE LTDA", "CIDADE": "RONDON", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185868, "PEDIDO": 192171, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "B. GOUVEIA CONSALTER TAMANINI", "CIDADE": "RONDON", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185869, "PEDIDO": 192222, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "JULIANA ROBERTA CARNIO DE CASTRO", "CIDADE": "RONDON", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185870, "PEDIDO": 192260, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "R. PARRO LTDA", "CIDADE": "RONDON", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 21,28,35 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185870, "PEDIDO": 192260, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "R. PARRO LTDA", "CIDADE": "RONDON", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 21,28,35 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185871, "PEDIDO": 191347, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "MERCADO IRMAOS PRADO LTDA", "CIDADE": "CIDADE GAUCHA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14,19 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185872, "PEDIDO": 192262, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "N RONQUI & CIA LTDA", "CIDADE": "CIDADE GAUCHA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185873, "PEDIDO": 192273, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "R PARRO LTDA", "CIDADE": "CIDADE GAUCHA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 21,28,35 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185874, "PEDIDO": 191897, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "F L MAS QUIETO PANIFICADORA", "CIDADE": "TAPIRA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185875, "PEDIDO": 191923, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "L B GONCALVES", "CIDADE": "TAPIRA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185876, "PEDIDO": 192265, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "REGINALDO DE SOUZA EVANGELISTA LTDA", "CIDADE": "TAPIRA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3092801, "NR_NF": 185877, "PEDIDO": 191320, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MAICON CLEBERTON CREPE", "PLACA": "RHH0B72", "DS_CLIENTE": "ARY FALAVIGNA LTDA", "CIDADE": "MIRADOR", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3092901, "NR_NF": 185817, "PEDIDO": 192011, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "REGINALDO CARLOS DA SILVA", "PLACA": "RHS6J73", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3092901, "NR_NF": 185818, "PEDIDO": 192148, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "REGINALDO CARLOS DA SILVA", "PLACA": "RHS6J73", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3092901, "NR_NF": 185819, "PEDIDO": 192010, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "REGINALDO CARLOS DA SILVA", "PLACA": "RHS6J73", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3092901, "NR_NF": 185820, "PEDIDO": 192145, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "REGINALDO CARLOS DA SILVA", "PLACA": "RHS6J73", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3092901, "NR_NF": 185821, "PEDIDO": 192001, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "REGINALDO CARLOS DA SILVA", "PLACA": "RHS6J73", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "IBIPORA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3092901, "NR_NF": 185822, "PEDIDO": 192154, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "REGINALDO CARLOS DA SILVA", "PLACA": "RHS6J73", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "APUCARANA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3092901, "NR_NF": 185823, "PEDIDO": 191882, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "REGINALDO CARLOS DA SILVA", "PLACA": "RHS6J73", "DS_CLIENTE": "SUPERALVO SUPERMERCADO LTDA", "CIDADE": "APUCARANA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3092901, "NR_NF": 185824, "PEDIDO": 191886, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "REGINALDO CARLOS DA SILVA", "PLACA": "RHS6J73", "DS_CLIENTE": "SUPERALVO SUPERMERCADO LTDA", "CIDADE": "APUCARANA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3093001, "NR_NF": 185955, "PEDIDO": 191458, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "ELITON TACCI\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVC1F08", "DS_CLIENTE": "ZACHYTKO E ZACHYTKO CAVALCANTE LTDA", "CIDADE": "CRUZEIRO DO OESTE", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093001, "NR_NF": 185956, "PEDIDO": 191892, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "ELITON TACCI\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVC1F08", "DS_CLIENTE": "D ITALIA SUPERMERCADO LTDA", "CIDADE": "CRUZEIRO DO OESTE", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093001, "NR_NF": 185957, "PEDIDO": 191894, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "ELITON TACCI\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVC1F08", "DS_CLIENTE": "GOMES LUIZ SUPERMERCADOS LTDA", "CIDADE": "CRUZEIRO DO OESTE", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093001, "NR_NF": 185958, "PEDIDO": 191929, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "ELITON TACCI\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVC1F08", "DS_CLIENTE": "FRIGORIFICO ASTRA DO PARANA LTDA", "CIDADE": "CRUZEIRO DO OESTE", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093001, "NR_NF": 185959, "PEDIDO": 191978, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "ELITON TACCI\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVC1F08", "DS_CLIENTE": "ZACHYTKO E ZACHYTKO CAVALCANTE LTDA", "CIDADE": "CRUZEIRO DO OESTE", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093001, "NR_NF": 185960, "PEDIDO": 192081, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "ELITON TACCI\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVC1F08", "DS_CLIENTE": "ZACHYTKO E ZACHYTKO CAVALCANTE LTDA", "CIDADE": "CRUZEIRO DO OESTE", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093001, "NR_NF": 185961, "PEDIDO": 192133, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "ELITON TACCI\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVC1F08", "DS_CLIENTE": "D ITALIA SUPERMERCADO LTDA", "CIDADE": "CRUZEIRO DO OESTE", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093001, "NR_NF": 185962, "PEDIDO": 192150, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "ELITON TACCI\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVC1F08", "DS_CLIENTE": "L SOUZA BRITO DE MELO", "CIDADE": "CRUZEIRO DO OESTE", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093001, "NR_NF": 185963, "PEDIDO": 191342, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "ELITON TACCI\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVC1F08", "DS_CLIENTE": "IRMAOS BRATTI LTDA", "CIDADE": "TAPEJARA", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093001, "NR_NF": 185964, "PEDIDO": 192192, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "ELITON TACCI\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVC1F08", "DS_CLIENTE": "C R V ESTERO E CIA LTDA", "CIDADE": "TAPEJARA", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093001, "NR_NF": 185965, "PEDIDO": 191341, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "ELITON TACCI\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVC1F08", "DS_CLIENTE": "MORAIS E CORREIA SUPERMERCADO LTDA", "CIDADE": "TUNEIRAS DO OESTE", "NOME_VENDEDOR": "ALEXANDRE CONSTANTIN FLORENCIO", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093001, "NR_NF": 185966, "PEDIDO": 191922, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "ELITON TACCI\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVC1F08", "DS_CLIENTE": "M. E. OUCHITA FRANCOSO & CIA LTDA", "CIDADE": "MARIA HELENA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185825, "PEDIDO": 191981, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "M R RIBEIRO - MINIMERCADO", "CIDADE": "PEROLA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185826, "PEDIDO": 192091, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "RUELES MENDES E RODRIGUES LTDA", "CIDADE": "PEROLA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185827, "PEDIDO": 192172, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "RUELES MENDES E RODRIGUES LTDA", "CIDADE": "PEROLA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185828, "PEDIDO": 192182, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "GOMES & RONCOLATO LTDA", "CIDADE": "PEROLA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185829, "PEDIDO": 192224, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "ALVES & MATHEUS LTDA", "CIDADE": "PÉROLA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185830, "PEDIDO": 192264, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "GILMAR A DE SOUZA MERCADO ME", "CIDADE": "PEROLA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185831, "PEDIDO": 191927, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "MERCADO DE TUDO TEM LTDA", "CIDADE": "ALTONIA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185832, "PEDIDO": 192096, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "MERCADO DE TUDO TEM LTDA", "CIDADE": "ALTONIA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185833, "PEDIDO": 191332, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "FAGO COMERCIO DE ALIMENTOS LTDA", "CIDADE": "ALTONIA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185834, "PEDIDO": 191349, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "FAGO COMERCIO DE ALIMENTOS LTDA", "CIDADE": "SAO JORGE DO PATROCINIO", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185835, "PEDIDO": 192109, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "SUPERMERCADO SAO JORGE LTDA", "CIDADE": "SAO JORGE DO PATROCINIO", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185836, "PEDIDO": 191331, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "RUELES MENDES E RODRIGUES LTDA", "CIDADE": "IPORA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185837, "PEDIDO": 191921, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "M. E. RODRIGUES - MERCADO", "CIDADE": "IPORA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185838, "PEDIDO": 191934, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "FAGUNDES CRISTOVAM & CIA. LTDA.", "CIDADE": "IPORA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3093101, "NR_NF": 185839, "PEDIDO": 192203, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "DIEGO OLIVEIRA DE MORAES", "PLACA": "RVC1F26", "DS_CLIENTE": "RUELES MENDES E RODRIGUES LTDA", "CIDADE": "IPORA", "NOME_VENDEDOR": "FERNANDO HENRIQUE DE FARIAS DOS SANTOS", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093201, "NR_NF": 185810, "PEDIDO": 191998, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "FABIO RIBEIRO CALDAS\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVD0J89", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3093201, "NR_NF": 185811, "PEDIDO": 192002, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "FABIO RIBEIRO CALDAS\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVD0J89", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3093201, "NR_NF": 185812, "PEDIDO": 192151, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "FABIO RIBEIRO CALDAS\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVD0J89", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3093201, "NR_NF": 185813, "PEDIDO": 192152, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "FABIO RIBEIRO CALDAS\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVD0J89", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3093201, "NR_NF": 185814, "PEDIDO": 192157, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "FABIO RIBEIRO CALDAS\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVD0J89", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3093201, "NR_NF": 185815, "PEDIDO": 192146, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "FABIO RIBEIRO CALDAS\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVD0J89", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3093201, "NR_NF": 185816, "PEDIDO": 192158, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "FABIO RIBEIRO CALDAS\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t", "PLACA": "RVD0J89", "DS_CLIENTE": "IRMAOS MUFFATO & CIA LTDA", "CIDADE": "LONDRINA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 45 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185967, "PEDIDO": 192255, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "D RANIERO & CIA LTDA", "CIDADE": "BOM SUCESSO", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185968, "PEDIDO": 192267, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "RESTAURANTE FOGO E TEMPERO LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185969, "PEDIDO": 192286, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "ARAUJO & MINEO LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185970, "PEDIDO": 192297, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "TK BAR E RESTAURANTE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185971, "PEDIDO": 192259, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "LOPES & PEROMALLE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "LEONARDO GONCALVES TORTOLA", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185972, "PEDIDO": 192291, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "CONDOR SUPER CENTER LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - 40 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185973, "PEDIDO": 192022, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "RESTAURANTE ALINANDA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185974, "PEDIDO": 192268, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "CARAVELHA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185975, "PEDIDO": 192024, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "RESTAURANTE COSTELAO MARINGA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "-"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185976, "PEDIDO": 192292, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "PG RESTAURANTE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185977, "PEDIDO": 191931, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "BRASEIRO COMERCIO DE GENEROS ALIMENTICIOS LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185978, "PEDIDO": 192122, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "BATISTA & IZEPE LTDA", "CIDADE": "MARINGÁ", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185979, "PEDIDO": 191930, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "COMERCIO DE GENEROS ALIMENTICIOS DEMIM LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185980, "PEDIDO": 192278, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "SUPERMERCADO GAMA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185981, "PEDIDO": 192052, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "RECANTO SAO JOSE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185982, "PEDIDO": 192266, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "QUIOSQUE DO ZE LANCHOENTE E RESTAURANTE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185983, "PEDIDO": 192160, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "RESTAURANTE E LANCHONETE SIMIONI LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185984, "PEDIDO": 191805, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "COMPANHIA SULAMERICANA DE DISTRIBUICAO", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JULIANA CASTRO DO NASCIMENTO", "COND_PGTO_CLIENTE": "R - 30 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185985, "PEDIDO": 192125, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "BATISTA & IZEPE LTDA", "CIDADE": "FLORESTA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185986, "PEDIDO": 191947, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "EDSON DA SILVA - MERCEARIA LTDA", "CIDADE": "PAICANDU", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 7,14,21 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185987, "PEDIDO": 192226, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "SUPERMERCADO PULGA LTDA", "CIDADE": "PAICANDU", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185988, "PEDIDO": 192231, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "FINCO & FINCO LTDA", "CIDADE": "PAICANDU", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185989, "PEDIDO": 192250, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "SUPERMERCADO A. ANDRE LTDA", "CIDADE": "PAICANDU", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185990, "PEDIDO": 192256, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "RAFAEL ALVES DA SILVA 08549174971", "CIDADE": "PAICANDU", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093301, "NR_NF": 185991, "PEDIDO": 192263, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOEL ROSA DE SOUZA", "PLACA": "RVE0H44", "DS_CLIENTE": "FEIRA DO LAR MINIMERCADO LTDA", "CIDADE": "PAICANDU", "NOME_VENDEDOR": "TIAGO FERNANDO RADIN", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 185992, "PEDIDO": 191630, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "SUPERMERCADO BERNINI LTDA", "CIDADE": "IGUARACU", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 185993, "PEDIDO": 191933, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "SUPERMERCADO BERNINI LTDA", "CIDADE": "IGUARACU", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 185994, "PEDIDO": 192293, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "AMAZONAS DO BRASIL LTDA", "CIDADE": "MANDAGUARI", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 185995, "PEDIDO": 192287, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "LUZ COMERCIO E SERVICOS LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 185996, "PEDIDO": 191932, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "SHALLON RESTAURANTE E PIZZARIA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 185997, "PEDIDO": 192029, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "DIMENSAO COZINHA E MANIPULACAO LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 185998, "PEDIDO": 192223, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "MAP COMERCIO DE PAES E DOCES LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 185999, "PEDIDO": 192127, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "F K COMERCIO DE ALIMENTOS E PARTICIPACOES LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186000, "PEDIDO": 192095, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "RESTAURANTE E LANCHONETE CAPRA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186001, "PEDIDO": 192296, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "RESTAURANTE E LANCHONETE CAPRA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186002, "PEDIDO": 192071, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "VENDAS SABOR BRASIL LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186003, "PEDIDO": 192162, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "F K COMERCIO DE ALIMENTOS E PARTICIPACOES LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186004, "PEDIDO": 191681, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "N C CORREIA CASA DE CARNES", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186005, "PEDIDO": 192051, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "FAT PIZZARIA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186006, "PEDIDO": 192099, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "RESTAURANTE SHIRMAR LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186007, "PEDIDO": 191979, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "A G COMERCIO DE CARNES LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186008, "PEDIDO": 192105, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "DA COSTA PANIFICADORA E CONFEITARIA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186009, "PEDIDO": 192180, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "RIBEIRO GUARIENTO & CIA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186010, "PEDIDO": 192130, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "LIMAO ROSA RESTAURANTE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186011, "PEDIDO": 192243, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "LIMAO ROSA RESTAURANTE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186012, "PEDIDO": 192061, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "GS SARAIVA RESTAURANTE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186013, "PEDIDO": 191824, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "COMERCIAL CENTER CARNES ITATIAIA LTDA - EPP", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186014, "PEDIDO": 192119, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "F K COMERCIO DE ALIMENTOS E PARTICIPACOES LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186015, "PEDIDO": 192132, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "F K COMERCIO DE ALIMENTOS E PARTICIPACOES LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186016, "PEDIDO": 191959, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "COMERCIO DE FRIOS MARTINS LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186017, "PEDIDO": 192101, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "FRANGO AMERICANO MARINGA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3093401, "NR_NF": 186018, "PEDIDO": 191988, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JOSE GERMANO SOARES", "PLACA": "RVE0H46", "DS_CLIENTE": "ADEMIR COLA MINIMERCADO", "CIDADE": "SARANDI", "NOME_VENDEDOR": "MAYCON RODRIGO PUPULIN", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186146, "PEDIDO": 192057, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "EXPRESS MARINGA ALIMENTOS LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R - 35 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186147, "PEDIDO": 191783, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "DANIELA GONCALVES GARCIA RESTAURANTE", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R - 14,19 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186148, "PEDIDO": 192020, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "YASASHII PIZZARIA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186149, "PEDIDO": 192027, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "RESTAURANTE FRATELLO PICANHA GRILL LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186150, "PEDIDO": 192007, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "BRIOCHE CROCANTE PANIFICADORA E CONFEITARIA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "SERGIO FABIANO NEIVERTH", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186151, "PEDIDO": 192232, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "F K COMERCIO DE ALIMENTOS E PARTICIPACOES LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186152, "PEDIDO": 191641, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "ADUEM ASSOC DOS DOCENTES DA UNIVERSIDADE ESTADUAL DE MARINGA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186153, "PEDIDO": 192080, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "BEVILAQUA & RUIZ LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186154, "PEDIDO": 192049, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "WASABI BAR E PETISCARIA LTDA - ME", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186155, "PEDIDO": 192054, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "MARINES DA SILVA CORREIA 52076245200", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186156, "PEDIDO": 192120, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "BATISTA & IZEPE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186157, "PEDIDO": 192134, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "BATISTA & IZEPE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186158, "PEDIDO": 192289, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "CONDOR SUPER CENTER LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - 40 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186159, "PEDIDO": 192165, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "MERCADO SUPER FACIL LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186160, "PEDIDO": 192215, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "MINIMERCADO SAO JORGE EIRELI", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186161, "PEDIDO": 192074, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "PANIFICADORA GABRIELI LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186162, "PEDIDO": 191667, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "MERCADO KATAYAMA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "JOAO VITOR ARENAS MARCATO", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186163, "PEDIDO": 192285, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "I.C JACOB DA SILVA EIRELI", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186164, "PEDIDO": 192048, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "M. J. CORREIA DA SILVA & SILVA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186166, "PEDIDO": 192207, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "COMERCIO DE GENEROS ALIMENTICIOS SCAA LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "A & D REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 26 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186167, "PEDIDO": 192121, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "BATISTA & IZEPE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3093501, "NR_NF": 186168, "PEDIDO": 192124, "DS_TRANSP": "GONCALVES & TORTOLA S/A", "DS_MOTORISTA": "JULIO FELIX DA SILVA", "PLACA": "RVE0H48", "DS_CLIENTE": "BATISTA & IZEPE LTDA", "CIDADE": "MARINGA", "NOME_VENDEDOR": "ALESSANDRA BORGATO", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3093601, "NR_NF": 186078, "PEDIDO": 192143, "DS_TRANSP": "TRANSPORTADORA ROSA DOS VENTOS LTDA", "DS_MOTORISTA": "RAFAEL DO NASCIMENTO MORAES", "PLACA": "SEA3A72", "DS_CLIENTE": "P P SILVA E CIA LTDA", "CIDADE": "ROLANDIA", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3093601, "NR_NF": 186079, "PEDIDO": 191740, "DS_TRANSP": "TRANSPORTADORA ROSA DOS VENTOS LTDA", "DS_MOTORISTA": "RAFAEL DO NASCIMENTO MORAES", "PLACA": "SEA3A72", "DS_CLIENTE": "J A LOPES COMERCIAL DE ALIMENTOS LTDA", "CIDADE": "ROLANDIA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093601, "NR_NF": 186080, "PEDIDO": 191994, "DS_TRANSP": "TRANSPORTADORA ROSA DOS VENTOS LTDA", "DS_MOTORISTA": "RAFAEL DO NASCIMENTO MORAES", "PLACA": "SEA3A72", "DS_CLIENTE": "LANCHONETE TEXACO LTDA", "CIDADE": "ROLANDIA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093601, "NR_NF": 186081, "PEDIDO": 192149, "DS_TRANSP": "TRANSPORTADORA ROSA DOS VENTOS LTDA", "DS_MOTORISTA": "RAFAEL DO NASCIMENTO MORAES", "PLACA": "SEA3A72", "DS_CLIENTE": "F. ROCHA COMERCIO DE ALIMENTOS LTDA", "CIDADE": "ROLANDIA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093601, "NR_NF": 186082, "PEDIDO": 192240, "DS_TRANSP": "TRANSPORTADORA ROSA DOS VENTOS LTDA", "DS_MOTORISTA": "RAFAEL DO NASCIMENTO MORAES", "PLACA": "SEA3A72", "DS_CLIENTE": "LUIZ H P BRITO &  CIA LTDA", "CIDADE": "ROLANDIA", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093601, "NR_NF": 186083, "PEDIDO": 192114, "DS_TRANSP": "TRANSPORTADORA ROSA DOS VENTOS LTDA", "DS_MOTORISTA": "RAFAEL DO NASCIMENTO MORAES", "PLACA": "SEA3A72", "DS_CLIENTE": "LANCHERIA E RESTAURANTE DO TCHE LTDA.", "CIDADE": "ROLANDIA", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "R - 7,14,21 DIAS"}, {"NR_ROMANEIO": 3093601, "NR_NF": 186084, "PEDIDO": 191937, "DS_TRANSP": "TRANSPORTADORA ROSA DOS VENTOS LTDA", "DS_MOTORISTA": "RAFAEL DO NASCIMENTO MORAES", "PLACA": "SEA3A72", "DS_CLIENTE": "ALEX LUZ CHOPERIA E PETISCARIA LTDA", "CIDADE": "ROLANDIA", "NOME_VENDEDOR": "RODRIGO GLAUBER CORREA", "COND_PGTO_CLIENTE": "-"}, {"NR_ROMANEIO": 3093601, "NR_NF": 186085, "PEDIDO": 192036, "DS_TRANSP": "TRANSPORTADORA ROSA DOS VENTOS LTDA", "DS_MOTORISTA": "RAFAEL DO NASCIMENTO MORAES", "PLACA": "SEA3A72", "DS_CLIENTE": "JACOBOSKI, JACOBOSKI & CIA. LTDA", "CIDADE": "ARAPONGAS", "NOME_VENDEDOR": "MATHEUS AUGUSTO LINJARDI PEREIRA", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3093601, "NR_NF": 186086, "PEDIDO": 192176, "DS_TRANSP": "TRANSPORTADORA ROSA DOS VENTOS LTDA", "DS_MOTORISTA": "RAFAEL DO NASCIMENTO MORAES", "PLACA": "SEA3A72", "DS_CLIENTE": "CASA VILA REAL COMERCIO DE GENEROS ALIMENTICIOS LTDA", "CIDADE": "ARAPONGAS", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093601, "NR_NF": 186087, "PEDIDO": 191509, "DS_TRANSP": "TRANSPORTADORA ROSA DOS VENTOS LTDA", "DS_MOTORISTA": "RAFAEL DO NASCIMENTO MORAES", "PLACA": "SEA3A72", "DS_CLIENTE": "SANCHES E VECCHIATE LTDA", "CIDADE": "ARAPONGAS", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 28 DIAS"}, {"NR_ROMANEIO": 3093601, "NR_NF": 186088, "PEDIDO": 192184, "DS_TRANSP": "TRANSPORTADORA ROSA DOS VENTOS LTDA", "DS_MOTORISTA": "RAFAEL DO NASCIMENTO MORAES", "PLACA": "SEA3A72", "DS_CLIENTE": "RAW ZAMPIROLI LTDA", "CIDADE": "ARAPONGAS", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093601, "NR_NF": 186089, "PEDIDO": 192239, "DS_TRANSP": "TRANSPORTADORA ROSA DOS VENTOS LTDA", "DS_MOTORISTA": "RAFAEL DO NASCIMENTO MORAES", "PLACA": "SEA3A72", "DS_CLIENTE": "SUPERMERCADO CENTAURO LTDA", "CIDADE": "ARAPONGAS", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 26 DIAS"}, {"NR_ROMANEIO": 3093601, "NR_NF": 186090, "PEDIDO": 191519, "DS_TRANSP": "TRANSPORTADORA ROSA DOS VENTOS LTDA", "DS_MOTORISTA": "RAFAEL DO NASCIMENTO MORAES", "PLACA": "SEA3A72", "DS_CLIENTE": "V HIRATA COMERCIO LTDA", "CIDADE": "ARAPONGAS", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3093601, "NR_NF": 186091, "PEDIDO": 192233, "DS_TRANSP": "TRANSPORTADORA ROSA DOS VENTOS LTDA", "DS_MOTORISTA": "RAFAEL DO NASCIMENTO MORAES", "PLACA": "SEA3A72", "DS_CLIENTE": "SUPERMERCADO CENTAURO LTDA", "CIDADE": "ARAPONGAS", "NOME_VENDEDOR": "BOIADEIRO REPRESENTACOES COMERCIAIS LTDA", "COND_PGTO_CLIENTE": "R - 26 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185878, "PEDIDO": 191887, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "PAULUK & SCHAVAREN LTDA", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185879, "PEDIDO": 191888, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "ROGER KASPRZAK E CIA LTDA", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185880, "PEDIDO": 191889, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "SEMCZESZM & CEDORAK LTDA", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185881, "PEDIDO": 191898, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "VANIA CROZETTA", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185882, "PEDIDO": 191899, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "GILBERTO MARTINS PADILHA LTDA", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185883, "PEDIDO": 191904, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "COMERCIAL DE SECOS E MOLHADOS REGINA LTDA", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185884, "PEDIDO": 191906, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "EDITH HORST 43564097953", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185885, "PEDIDO": 191910, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "ROMERITO STACHIU & CIA LTDA", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185886, "PEDIDO": 191936, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "LEONORA APARECIDA CAMILO DA CRUZ 03297524995", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "-"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185887, "PEDIDO": 192196, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "JOSE GOMES PADILHA & CIA LTDA", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185888, "PEDIDO": 192200, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "E VILKAS & VILKAS LTDA", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185889, "PEDIDO": 192205, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "ROSANGELA RIBEIRO SUPERMERCADO", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 14,21 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185890, "PEDIDO": 192229, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "MARIO PAIANO GENEROS ALIMENTICIOS LTDA", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185891, "PEDIDO": 192276, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "ORLEI PADILHA & CIA. LTDA", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - DEPOSITO ANTECIPADO"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185892, "PEDIDO": 191913, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "MINIMERCADO IJJ LTDA", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185893, "PEDIDO": 191940, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "DW KRIIGUER LTDA", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - VENDA A VISTA/PIX"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185894, "PEDIDO": 192230, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "ELIELTON C. MARCELINO & CIA LTDA", "CIDADE": "PITANGA", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185895, "PEDIDO": 191916, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "SUPERMERCADO MENEGAZZO LTDA", "CIDADE": "MANOEL RIBAS", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 19 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185896, "PEDIDO": 192191, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "REGIANE BUENO", "CIDADE": "MANOEL RIBAS", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185897, "PEDIDO": 192218, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "JACKSON GALLO SOETHE & CIA LTDA", "CIDADE": "MANOEL RIBAS", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185898, "PEDIDO": 192237, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "RESTAURANTE E LANCHONETE FOGAO A LENHA LTDA", "CIDADE": "MANOEL RIBAS", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185899, "PEDIDO": 192241, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "VERONICA ESSER MENEGAZZO", "CIDADE": "MANOEL RIBAS", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185900, "PEDIDO": 192248, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "IRONI MACIEL & CIA LTDA", "CIDADE": "MANOEL RIBAS", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 21 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185901, "PEDIDO": 192274, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "AURORA ADRIANE WESLLER DO NASCIMENTO & CIA LTDA", "CIDADE": "MANOEL RIBAS", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R  - 7 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185902, "PEDIDO": 191027, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "NELSON SPADRIZANI E CIA LTDA", "CIDADE": "JARDIM ALEGRE", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 7,14 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185903, "PEDIDO": 191575, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "C. STORRER - LANCHES", "CIDADE": "JARDIM ALEGRE", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185904, "PEDIDO": 192282, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "MERCADO CHOCIAI LTDA", "CIDADE": "ARIRANHA DO IVAI", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 14 DIAS"}, {"NR_ROMANEIO": 3093701, "NR_NF": 185905, "PEDIDO": 191308, "DS_TRANSP": "MF TRANSPORTADORA LTDA", "DS_MOTORISTA": "MARCELO PEDRO BARBOZA", "PLACA": "SFB1C02", "DS_CLIENTE": "ACOPAR-COMERCIAL E AGRICOLA LTDA", "CIDADE": "SAO JOAO DO IVAI", "NOME_VENDEDOR": "MAICON DOUGLAS KARPOVICZ", "COND_PGTO_CLIENTE": "R - 19 DIAS"}];
+let DATA = [];
+let dataSourceLabel = '';
+
+
+// ---------- helpers ----------
+const titleCase = s => s.replace(/\s+/g,' ').trim();
+function countBy(arr, key){
+  const m = new Map();
+  arr.forEach(r=>{
+    const k = r[key];
+    m.set(k, (m.get(k)||0)+1);
+  });
+  return [...m.entries()].sort((a,b)=>b[1]-a[1]);
+}
+function distinctCount(arr, key){
+  return new Set(arr.map(r=>r[key])).size;
+}
+
+function init(){
+const totalRegistros = DATA.length;
+const totalNF = distinctCount(DATA, 'NR_NF');
+const totalClientes = distinctCount(DATA, 'DS_CLIENTE');
+const totalCidades = distinctCount(DATA, 'CIDADE');
+const totalTransp = distinctCount(DATA, 'DS_TRANSP');
+const totalVendedores = distinctCount(DATA, 'NOME_VENDEDOR');
+
+const now = new Date();
+document.getElementById('date-label').textContent = '· ' + now.toLocaleDateString('pt-BR');
+document.getElementById('header-meta').innerHTML =
+  `Filial <b>${(DATA[0] && DATA[0].FILIAL) || '-'}</b><br>${totalVendedores} vendedores em campo`;
+document.getElementById('footer-count').textContent = totalRegistros;
+
+// KPI row
+const kpiRow = document.getElementById('kpi-row');
+const kpiData = [
+  ['Entregas do dia', totalRegistros, ''],
+  ['Notas fiscais', totalNF, 'teal'],
+  ['Clientes atendidos', totalClientes, ''],
+  ['Cidades', totalCidades, 'teal'],
+  ['Transportadoras', totalTransp, ''],
+  ['Vendedores', totalVendedores, 'teal'],
+];
+kpiRow.innerHTML = kpiData.map(([label,val,cls])=>`
+  <div class="kpi ${cls}">
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value">${val}</div>
+  </div>
+`).join('');
+
+// vendor counts
+const vendCounts = countBy(DATA, 'NOME_VENDEDOR'); // [[name,count],...] desc
+document.getElementById('vend-panel-sub').textContent = `${vendCounts.length} representantes`;
+
+let selectedVendedor = null; // null = overview
+
+function renderVendList(filterText=''){
+  const list = document.getElementById('vend-list');
+  const f = filterText.trim().toLowerCase();
+  const filtered = vendCounts.filter(([name]) => name.toLowerCase().includes(f));
+  let html = `<div class="vend-item all ${selectedVendedor===null?'active':''}" data-vend="__all__">
+      <span class="vend-name">Visão geral (todos)</span>
+      <span class="vend-count">${totalRegistros}</span>
+    </div>`;
+  html += filtered.map(([name,count])=>`
+    <div class="vend-item ${selectedVendedor===name?'active':''}" data-vend="${encodeURIComponent(name)}">
+      <span class="vend-name">${name}</span>
+      <span class="vend-count">${count}</span>
+    </div>
+  `).join('');
+  if(filtered.length===0){
+    html += `<div class="empty-state">Nenhum vendedor encontrado</div>`;
+  }
+  list.innerHTML = html;
+  list.querySelectorAll('.vend-item[data-vend]').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const v = el.getAttribute('data-vend');
+      selectedVendedor = v === '__all__' ? null : decodeURIComponent(v);
+      renderVendList(document.getElementById('search-vendedor').value);
+      renderMain();
+    });
+  });
+}
+
+document.getElementById('search-vendedor').addEventListener('input', (e)=>{
+  renderVendList(e.target.value);
+});
+
+function barList(pairs, maxN=8, teal=false){
+  const top = pairs.slice(0, maxN);
+  const max = top.length ? top[0][1] : 1;
+  return `<div class="barlist">` + top.map(([label,count])=>`
+    <div class="bar-row">
+      <div class="bar-label" title="${label}">${label}</div>
+      <div class="bar-track"><div class="bar-fill ${teal?'teal':''}" style="width:${(count/max*100).toFixed(1)}%"></div></div>
+      <div class="bar-num">${count}</div>
+    </div>
+  `).join('') + `</div>`;
+}
+
+function getMuffatoGroups(){
+  const rows = DATA.filter(r => /muffato/i.test(r.DS_CLIENTE));
+  const groupsMap = new Map();
+  rows.forEach(r => {
+    const key = `${r.PLACA} — ${r.DS_TRANSP}`;
+    if(!groupsMap.has(key)) groupsMap.set(key, { placa: r.PLACA, transp: r.DS_TRANSP, motorista: r.DS_MOTORISTA, rows: [] });
+    groupsMap.get(key).rows.push(r);
+  });
+  return [...groupsMap.values()].sort((a,b)=> b.rows.length - a.rows.length);
+}
+
+function renderMuffatoPanel(){
+  const groups = getMuffatoGroups();
+  const totalEntregas = groups.reduce((sum,g)=>sum+g.rows.length, 0);
+
+  if(groups.length === 0){
+    return `
+      <div class="muffato-panel">
+        <div class="muffato-header">
+          <span class="muffato-title">🚛 Entregas Muffato</span>
+          <span class="muffato-stats">0 placas · 0 entregas</span>
+        </div>
+        <div class="empty-state">Nenhuma entrega para o Grupo Muffato no romaneio de hoje</div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="muffato-panel">
+      <div class="muffato-header">
+        <span class="muffato-title">🚛 Entregas Muffato</span>
+        <span class="muffato-stats">${groups.length} placa${groups.length>1?'s':''} · ${totalEntregas} entrega${totalEntregas>1?'s':''}</span>
+      </div>
+      <div class="muffato-list">
+        ${groups.map(g => {
+          const cidades = [...new Set(g.rows.map(r=>r.CIDADE))].join(', ');
+          const nfs = g.rows.map(r=>r.NR_NF).join(', ');
+          return `
+          <div class="muffato-row">
+            <span class="muffato-plate">${g.placa}</span>
+            <span class="muffato-info">
+              <b>${g.motorista}</b> · ${g.transp} · ${g.rows.length} entrega${g.rows.length>1?'s':''} · ${cidades}
+            </span>
+            <span class="muffato-nf" title="Notas fiscais: ${nfs}">NF ${nfs}</span>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+
+function renderOverview(){
+  document.getElementById('main-title').textContent = 'Visão Geral';
+  document.getElementById('main-sub').textContent = 'Todos os vendedores · todas as cidades';
+
+  const byCidade = countBy(DATA, 'CIDADE');
+  const byTransp = countBy(DATA, 'DS_TRANSP');
+  const byCond = countBy(DATA, 'COND_PGTO_CLIENTE');
+  const byVend = vendCounts;
+
+  const body = document.getElementById('main-panel-body');
+  body.innerHTML = `
+    <div class="section-title">Ranking de vendedores · entregas do dia</div>
+    ${barList(byVend, 10)}
+
+    <div class="grid-2">
+      <div>
+        <div class="section-title">Cidades atendidas</div>
+        ${barList(byCidade, 8, true)}
+      </div>
+      <div>
+        <div class="section-title">Transportadoras</div>
+        ${barList(byTransp, 8)}
+      </div>
+    </div>
+
+    <div class="section-title">Condições de pagamento mais comuns</div>
+    ${barList(byCond, 8, true)}
+
+    ${renderMuffatoPanel()}
+  `;
+}
+
+function renderVendedor(name){
+  const rows = DATA.filter(r=>r.NOME_VENDEDOR === name);
+  document.getElementById('main-title').textContent = name;
+  document.getElementById('main-sub').textContent = 'Detalhe das entregas do vendedor';
+
+  const clientes = distinctCount(rows, 'DS_CLIENTE');
+  const cidades = distinctCount(rows, 'CIDADE');
+  const transp = distinctCount(rows, 'DS_TRANSP');
+  const nf = distinctCount(rows, 'NR_NF');
+
+  const byCidade = countBy(rows, 'CIDADE');
+
+  const body = document.getElementById('main-panel-body');
+  body.innerHTML = `
+    <div class="vend-kpis">
+      <div class="vend-kpi"><div class="kpi-label">Entregas</div><div class="kpi-value">${rows.length}</div></div>
+      <div class="vend-kpi"><div class="kpi-label">Clientes</div><div class="kpi-value">${clientes}</div></div>
+      <div class="vend-kpi"><div class="kpi-label">Cidades</div><div class="kpi-value">${cidades}</div></div>
+      <div class="vend-kpi"><div class="kpi-label">Notas fiscais</div><div class="kpi-value">${nf}</div></div>
+    </div>
+
+    ${byCidade.length>1 ? `<div class="section-title">Distribuição por cidade</div>${barList(byCidade,6,true)}` : ''}
+
+    <div class="section-title">Entregas de hoje</div>
+    <div class="table-tools">
+      <input id="search-cliente" type="text" placeholder="Buscar cliente ou cidade...">
+      <div class="count-badge" id="ticket-count">${rows.length} entregas</div>
+    </div>
+    <div class="tickets" id="ticket-list"></div>
+  `;
+
+  function renderTickets(filterText=''){
+    const f = filterText.trim().toLowerCase();
+    const filtered = rows.filter(r =>
+      r.DS_CLIENTE.toLowerCase().includes(f) || r.CIDADE.toLowerCase().includes(f)
+    );
+    document.getElementById('ticket-count').textContent = `${filtered.length} entregas`;
+    const listEl = document.getElementById('ticket-list');
+    if(filtered.length===0){
+      listEl.innerHTML = `<div class="empty-state">Nenhuma entrega encontrada</div>`;
+      return;
+    }
+    listEl.innerHTML = filtered.map(r=>{
+      const pay = r.COND_PGTO_CLIENTE || '-';
+      const urgent = /VISTA|PIX|ANTECIPAD/i.test(pay);
+      return `
+      <div class="ticket">
+        <div class="ticket-main">
+          <div class="ticket-client">${r.DS_CLIENTE}</div>
+          <div class="ticket-city">${r.CIDADE}</div>
+          <div class="ticket-meta">
+            <span>Pedido ${r.PEDIDO}</span>
+            <span>Transp. ${r.DS_TRANSP}</span>
+            <span>Motorista ${r.DS_MOTORISTA}</span>
+            <span>Placa ${r.PLACA}</span>
+          </div>
+        </div>
+        <div class="ticket-tags">
+          <span class="tag nf">NF ${r.NR_NF}</span>
+          <span class="tag pay ${urgent?'urgent':''}">${pay}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  renderTickets();
+  document.getElementById('search-cliente').addEventListener('input', e=>renderTickets(e.target.value));
+}
+
+function renderMain(){
+  if(selectedVendedor === null){
+    renderOverview();
+  } else {
+    renderVendedor(selectedVendedor);
+  }
+}
+
+renderVendList();
+renderMain();
+wirePdfButtons();
+} // fim de init()
+
+// ======= EXPORTAÇÃO EM PDF =======
+function formatDateBR(){
+  return new Date().toLocaleDateString('pt-BR').split('/').join('-');
+}
+
+function buildPdf(title, groups, groupLabelPrefix, columns){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let first = true;
+
+  groups.forEach(([groupName, rows]) => {
+    if(!first) doc.addPage();
+    first = false;
+
+    doc.setFontSize(14);
+    doc.setTextColor(30,30,30);
+    doc.text(title, 40, 40);
+    doc.setFontSize(10);
+    doc.setTextColor(100,100,100);
+    doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, 40, 56);
+
+    doc.setFontSize(12);
+    doc.setTextColor(20,20,20);
+    doc.text(`${groupLabelPrefix}: ${groupName}   (${rows.length} entrega${rows.length>1?'s':''})`, 40, 78);
+
+    doc.autoTable({
+      startY: 90,
+      head: [columns.map(c=>c.header)],
+      body: rows.map(r => columns.map(c => c.get(r))),
+      styles: { fontSize: 8.5, cellPadding: 5 },
+      headStyles: { fillColor: [30,40,42], textColor: [255,255,255] },
+      alternateRowStyles: { fillColor: [245,245,242] },
+      margin: { left: 40, right: 40 },
+    });
+  });
+
+  return doc;
+}
+
+function exportPorVeiculo(filterKey){
+  const groupsMap = new Map();
+  DATA.forEach(r => {
+    const key = `${r.PLACA} — ${r.DS_TRANSP}`;
+    if(!groupsMap.has(key)) groupsMap.set(key, []);
+    groupsMap.get(key).push(r);
+  });
+  let groups = [...groupsMap.entries()].sort((a,b)=> a[0].localeCompare(b[0]));
+  let fileTag = 'todos';
+  if(filterKey && filterKey !== '__all__'){
+    groups = groups.filter(([key]) => key === filterKey);
+    fileTag = filterKey.split(' — ')[0].replace(/[^a-zA-Z0-9]/g,'');
+  }
+
+  const columns = [
+    { header: 'NF', get: r => r.NR_NF },
+    { header: 'Pedido', get: r => r.PEDIDO },
+    { header: 'Cliente', get: r => r.DS_CLIENTE },
+    { header: 'Cidade', get: r => r.CIDADE },
+    { header: 'Motorista', get: r => r.DS_MOTORISTA },
+    { header: 'Vendedor', get: r => r.NOME_VENDEDOR },
+    { header: 'Cond. Pagto', get: r => r.COND_PGTO_CLIENTE },
+  ];
+
+  const doc = buildPdf('Romaneio do Dia — Entregas por Veículo', groups, 'Veículo / Transportadora', columns);
+  doc.save(`romaneio_veiculo_${fileTag}_${formatDateBR()}.pdf`);
+}
+
+function exportPorVendedor(filterKey){
+  const groupsMap = new Map();
+  DATA.forEach(r => {
+    const key = r.NOME_VENDEDOR || '(sem vendedor)';
+    if(!groupsMap.has(key)) groupsMap.set(key, []);
+    groupsMap.get(key).push(r);
+  });
+  let groups = [...groupsMap.entries()].sort((a,b)=> b[1].length - a[1].length);
+  let fileTag = 'todos';
+  if(filterKey && filterKey !== '__all__'){
+    groups = groups.filter(([key]) => key === filterKey);
+    fileTag = filterKey.replace(/[^a-zA-Z0-9]/g,'_').slice(0,30);
+  }
+
+  const columns = [
+    { header: 'NF', get: r => r.NR_NF },
+    { header: 'Pedido', get: r => r.PEDIDO },
+    { header: 'Cliente', get: r => r.DS_CLIENTE },
+    { header: 'Cidade', get: r => r.CIDADE },
+    { header: 'Transportadora', get: r => r.DS_TRANSP },
+    { header: 'Placa', get: r => r.PLACA },
+    { header: 'Cond. Pagto', get: r => r.COND_PGTO_CLIENTE },
+  ];
+
+  const doc = buildPdf('Romaneio do Dia — Entregas por Vendedor', groups, 'Vendedor', columns);
+  doc.save(`romaneio_vendedor_${fileTag}_${formatDateBR()}.pdf`);
+}
+
+function populatePdfSelects(){
+  const selV = document.getElementById('select-veiculo');
+  const selP = document.getElementById('select-vendedor');
+
+  const veiculos = [...new Map(DATA.map(r => [`${r.PLACA} — ${r.DS_TRANSP}`, true])).keys()].sort((a,b)=>a.localeCompare(b));
+  selV.innerHTML = `<option value="__all__">Todos os veículos</option>` +
+    veiculos.map(v => `<option value="${v.replace(/"/g,'&quot;')}">${v}</option>`).join('');
+
+  const vendedores = countBy(DATA, 'NOME_VENDEDOR').map(([name])=>name);
+  selP.innerHTML = `<option value="__all__">Todos os vendedores</option>` +
+    vendedores.map(v => `<option value="${v.replace(/"/g,'&quot;')}">${v}</option>`).join('');
+}
+
+function wirePdfButtons(){
+  populatePdfSelects();
+  const btnV = document.getElementById('btn-pdf-veiculo');
+  const btnP = document.getElementById('btn-pdf-vendedor');
+  const selV = document.getElementById('select-veiculo');
+  const selP = document.getElementById('select-vendedor');
+  if(btnV) btnV.onclick = () => { btnV.disabled = true; setTimeout(()=>{ try{ exportPorVeiculo(selV.value); } finally { btnV.disabled = false; } }, 10); };
+  if(btnP) btnP.onclick = () => { btnP.disabled = true; setTimeout(()=>{ try{ exportPorVendedor(selP.value); } finally { btnP.disabled = false; } }, 10); };
+}
+
+
+
+// ======= CARREGAMENTO DOS DADOS =======
+function showBanner(text, kind){
+  const el = document.getElementById('status-banner');
+  el.style.display = 'flex';
+  const colors = {
+    demo:  {bg:'var(--amber-dim)', border:'var(--amber)', color:'#f5cf94'},
+    live:  {bg:'var(--teal-dim)',  border:'var(--teal)',  color:'#a9e0d3'},
+    error: {bg:'var(--rust-dim)',  border:'var(--rust)',  color:'#f0a894'},
+  };
+  const c = colors[kind] || colors.demo;
+  el.style.background = c.bg;
+  el.style.border = `1px solid ${c.border}`;
+  el.style.color = c.color;
+  el.innerHTML = `<span>${text}</span><button id="refresh-btn" style="font-family:'IBM Plex Mono',monospace; font-size:11px; background:transparent; border:1px solid ${c.border}; color:${c.color}; border-radius:20px; padding:4px 12px; cursor:pointer;">Atualizar agora</button>`;
+  document.getElementById('refresh-btn').addEventListener('click', loadData);
+}
+
+function dedupeRows(rows){
+  const seen = new Set();
+  const out = [];
+  for(const r of rows){
+    const key = [r.NR_ROMANEIO,r.NR_NF,r.PEDIDO,r.DS_CLIENTE,r.DS_TRANSP,r.DS_MOTORISTA,r.PLACA,r.CIDADE,r.NOME_VENDEDOR,r.COND_PGTO_CLIENTE].join('|');
+    if(!seen.has(key)){ seen.add(key); out.push(r); }
+  }
+  return out;
+}
+
+function normalizeRow(r){
+  return {
+    FILIAL: (r.FILIAL||'').toString().trim(),
+    NR_ROMANEIO: (r.NR_ROMANEIO||'').toString().trim(),
+    NR_NF: (r.NR_NF||'').toString().trim(),
+    PEDIDO: (r.PEDIDO||'').toString().trim(),
+    DS_TRANSP: (r.DS_TRANSP||'').toString().trim(),
+    DS_MOTORISTA: (r.DS_MOTORISTA||'').toString().trim(),
+    PLACA: (r.PLACA||'').toString().trim(),
+    DS_CLIENTE: (r.DS_CLIENTE||'').toString().trim(),
+    CIDADE: (r.CIDADE||'').toString().trim().toUpperCase(),
+    NOME_VENDEDOR: (r.NOME_VENDEDOR||'').toString().trim(),
+    COND_PGTO_CLIENTE: (r.COND_PGTO_CLIENTE||'').toString().trim(),
+  };
+}
+
+async function loadData(){
+  document.getElementById('dashboard-content').style.display = 'none';
+  document.getElementById('loading-state').style.display = 'block';
+  document.getElementById('loading-state').textContent = 'Carregando dados do romaneio...';
+
+  if(!CSV_URL || !CSV_URL.trim()){
+    DATA = dedupeRows(DATA_FALLBACK);
+    showBanner('⚠ Modo de exemplo — mostrando o romaneio de 08/07. Configure CSV_URL no código para atualizar automaticamente todo dia.', 'demo');
+    finishLoad();
+    return;
+  }
+
+  try{
+    const res = await fetch(CSV_URL + (CSV_URL.includes('?') ? '&' : '?') + '_=' + Date.now());
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const text = await res.text();
+    const parsed = Papa.parse(text, {header:true, skipEmptyLines:true});
+    const rows = dedupeRows(parsed.data.map(normalizeRow).filter(r => r.DS_CLIENTE));
+    if(rows.length === 0) throw new Error('Nenhuma linha válida encontrada na planilha.');
+    DATA = rows;
+    const now = new Date();
+    showBanner(`● Dados ao vivo — atualizado às ${now.toLocaleTimeString('pt-BR')}`, 'live');
+    finishLoad();
+  }catch(err){
+    console.error(err);
+    DATA = dedupeRows(DATA_FALLBACK);
+    showBanner('⚠ Não foi possível carregar a planilha configurada. Mostrando dados de exemplo (08/07).', 'error');
+    finishLoad();
+  }
+}
+
+function finishLoad(){
+  document.getElementById('loading-state').style.display = 'none';
+  document.getElementById('dashboard-content').style.display = 'block';
+  init();
+}
+
+loadData();
+</script>
+</body>
+</html>
