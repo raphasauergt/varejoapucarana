@@ -878,6 +878,12 @@ tbody tr:last-child td{border-bottom:none;}
         </ol>
         <div class="code-box" id="scriptCodeBox"></div>
         <button class="btn btn-outline" style="margin-top:10px;" onclick="copyScriptCode()"><i class="fa-regular fa-copy"></i> Copiar código do script</button>
+        <p style="margin-top:12px;font-size:11.5px;color:var(--text-soft);">
+          <b>Já tinha conectado antes?</b> Cole o código atualizado no mesmo projeto do Apps Script,
+          clique em <b>Implantar → Gerenciar implantações → ✏️ (editar) → Nova versão → Implantar</b>.
+          A URL continua a mesma — não precisa reconectar no painel. A lista suspensa colorida de status
+          só aparece em planilhas <b>novas</b> (criadas depois desta atualização).
+        </p>
       </div>
     </div>
     <div class="modal-foot" style="justify-content:space-between;">
@@ -1783,7 +1789,45 @@ function getFrotaSheet(){
   var sheet = ss.getSheetByName('Frota');
   if (!sheet) {
     sheet = ss.insertSheet('Frota');
-    sheet.appendRow(['placa','modelo','motorista','transportadora','tipoFrota','perfil','status','capMin','capMax','diasParado','upd']);
+    var headers = ['placa','modelo','motorista','transportadora','tipoFrota','perfil','status','capMin','capMax','diasParado','upd'];
+    sheet.appendRow(headers);
+    sheet.setFrozenRows(1);
+    sheet.setColumnWidths(1, headers.length, 130);
+
+    var maxRows = 1000;
+
+    // Coluna E (5) = Tipo de Frota — lista suspensa
+    var tipoRange = sheet.getRange(2, 5, maxRows - 1, 1);
+    tipoRange.setDataValidation(
+      SpreadsheetApp.newDataValidation().requireValueInList(['propria','terceiros'], true).setAllowInvalid(true).build()
+    );
+
+    // Coluna F (6) = Perfil do Veículo — lista suspensa
+    var perfilRange = sheet.getRange(2, 6, maxRows - 1, 1);
+    perfilRange.setDataValidation(
+      SpreadsheetApp.newDataValidation().requireValueInList(['van','vuc','34leve','34adapt','toco','truck','bitruck'], true).setAllowInvalid(true).build()
+    );
+
+    // Coluna G (7) = Status — lista suspensa (equivalente ao "check" de seleção)
+    var statusRange = sheet.getRange(2, 7, maxRows - 1, 1);
+    statusRange.setDataValidation(
+      SpreadsheetApp.newDataValidation().requireValueInList(['livre','pernoite','manutencao','viagem','reserva','bloqueado'], true).setAllowInvalid(true).build()
+    );
+
+    // Colore a célula de status de acordo com o valor — igual às cores do painel
+    var colors = {
+      livre:'#E7F7EC', pernoite:'#FDEAEC', manutencao:'#FFF7DE',
+      viagem:'#E4F6FB', reserva:'#F1EAFB', bloqueado:'#EEF1F4'
+    };
+    var rules = sheet.getConditionalFormatRules();
+    Object.keys(colors).forEach(function(key){
+      rules.push(SpreadsheetApp.newConditionalFormatRule()
+        .whenTextEqualTo(key)
+        .setBackground(colors[key])
+        .setRanges([statusRange])
+        .build());
+    });
+    sheet.setConditionalFormatRules(rules);
   }
   return sheet;
 }`;
