@@ -498,6 +498,22 @@ tbody tr:last-child td{border-bottom:none;}
 .sheet-foot{display:flex;justify-content:flex-end;padding:14px 18px;background:var(--warning-soft);border-top:2px solid var(--warning);}
 .sheet-foot .sheet-total{font-size:15px;font-weight:800;color:#7A5D00;}
 .sheet-scroll{overflow-x:auto;}
+
+/* Grupo de checkboxes de status (clique direto, sem abrir menu) */
+.status-check-group{display:flex;flex-wrap:wrap;gap:5px 9px;align-items:center;}
+.status-check{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap;user-select:none;}
+.status-check input{
+  appearance:none;-webkit-appearance:none;width:15px;height:15px;min-width:15px;
+  border:2px solid var(--border);border-radius:4px;cursor:pointer;position:relative;margin:0;
+}
+.status-check input:checked{background:currentColor;border-color:currentColor;}
+.status-check input:checked::after{content:'\2713';position:absolute;top:-3px;left:1.5px;font-size:10px;font-weight:900;color:#fff;}
+.status-check.b-livre{color:#1E8E3E;}
+.status-check.b-pernoite{color:#C0293B;}
+.status-check.b-manutencao{color:#96760A;}
+.status-check.b-viagem{color:#127488;}
+.status-check.b-reserva{color:#6B41A8;}
+.status-check.b-bloqueado{color:#4A5568;}
 .table-foot{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;font-size:12.5px;color:var(--text-soft);}
 .pager{display:flex;gap:6px;}
 .pager button{width:30px;height:30px;border-radius:8px;background:var(--bg);font-weight:600;font-size:12.5px;}
@@ -1297,6 +1313,7 @@ function updateVehicleStatus(placa, newStatus){
     v.upd = 'agora mesmo';
     logVehicleEvent(placa, 'status', 'Status alterado de "' + STATUS_MAP[oldStatus].label + '" para "' + STATUS_MAP[newStatus].label + '".', {from:oldStatus, to:newStatus});
     renderTable();
+    renderStatusView();
     refreshAnalytics();
     saveToStorage();
     pushToSheets(true);
@@ -1571,12 +1588,18 @@ function renderStatusCards(rows){
   container.innerHTML = html;
 }
 
-function sheetStatusSelectHTML(v){
-  const s = STATUS_MAP[v.status];
-  const opts = Object.entries(STATUS_MAP).map(([key,val])=>
-    `<option value="${key}" ${key===v.status?'selected':''}>${val.label}</option>`
-  ).join('');
-  return `<select class="sheet-status-select status-inline ${s.cls}" onchange="requireUnlock(()=>updateVehicleStatus('${v.placa}', this.value))">${opts}</select>`;
+function statusChecksHTML(v){
+  return `<div class="status-check-group">` + Object.entries(STATUS_MAP).map(([key,val])=>`
+    <label class="status-check ${val.cls}" title="${val.label}">
+      <input type="checkbox" ${v.status===key?'checked':''} onclick="return handleStatusCheck(event,'${v.placa}','${key}')"> ${val.label}
+    </label>`).join('') + `</div>`;
+}
+function handleStatusCheck(ev, placa, key){
+  ev.preventDefault();
+  const v = fleet.find(x=>x.placa===placa);
+  if(!v || v.status === key) return false;
+  requireUnlock(()=>updateVehicleStatus(placa, key));
+  return false;
 }
 function renderStatusSheet(rows){
   const wrap = document.getElementById('statusSheetWrap');
@@ -1604,7 +1627,7 @@ function renderStatusSheet(rows){
       <td style="text-align:right;">${v.capMax.toLocaleString('pt-BR')}</td>
       <td>${ORIGEM_LABELS[v.tipoFrota] || v.tipoFrota}</td>
       <td class="center"><input type="checkbox" class="sheet-check" ${checked?'checked':''} onchange="requireUnlock(()=>toggleValidacao('${v.placa}', this.checked))"></td>
-      <td>${sheetStatusSelectHTML(v)}</td>
+      <td>${statusChecksHTML(v)}</td>
     </tr>`;
   });
   wrap.innerHTML = `
@@ -1613,7 +1636,7 @@ function renderStatusSheet(rows){
         <table class="sheet-table">
           <thead><tr>
             <th>Motorista</th><th>Transportadora</th><th>Placa</th><th>Perfil</th>
-            <th style="text-align:right;">Peso Máx (kg)</th><th>Origem</th><th class="center">Validação</th><th>Status</th>
+            <th style="text-align:right;">Peso Máx (kg)</th><th>Origem</th><th class="center">Validação</th><th style="min-width:340px;">Status</th>
           </tr></thead>
           <tbody>${bodyHtml}</tbody>
         </table>
