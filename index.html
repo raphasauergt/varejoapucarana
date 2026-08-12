@@ -433,6 +433,47 @@ tbody tr:last-child td{border-bottom:none;}
 .timeline-dot{width:32px;height:32px;min-width:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12.5px;z-index:1;border:2px solid var(--surface);}
 .timeline-text{font-size:13px;font-weight:600;color:var(--text);}
 .timeline-date{font-size:11px;color:var(--text-soft);margin-top:2px;}
+
+/* ---- LOCK BADGE (chave mestra) ---- */
+.sidebar-lock-badge{
+  margin:0 14px 16px;padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.06);
+  display:flex;align-items:center;gap:10px;color:#B7C4D6;font-size:12px;font-weight:600;cursor:pointer;
+  transition:background .15s;
+}
+.sidebar-lock-badge:hover{background:rgba(255,255,255,.1);}
+.sidebar-lock-badge.unlocked{background:rgba(40,167,69,.18);color:#8FE0A6;}
+.sidebar-lock-badge i{font-size:13px;}
+.app.collapsed .sidebar-lock-badge .label{display:none;}
+.app.collapsed .sidebar-lock-badge{justify-content:center;}
+
+/* ---- VIEW: ATUALIZAÇÃO DE STATUS ---- */
+.status-group-title{
+  font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text-soft);
+  padding:16px 4px 10px;display:flex;align-items:center;gap:8px;
+}
+.status-group-title:first-child{padding-top:4px;}
+.status-row{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:10px;
+  transition:box-shadow .15s;
+}
+.status-row:hover{box-shadow:var(--shadow-sm);}
+.status-row-info{min-width:180px;}
+.status-row-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--text-soft);margin-top:4px;}
+.status-row-meta i{margin-right:4px;color:var(--text-soft);}
+.status-pill-group{display:flex;gap:6px;flex-wrap:wrap;}
+.status-pill{
+  display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:20px;font-size:11.5px;font-weight:700;
+  border:1.5px solid transparent;opacity:.55;transition:all .15s;
+}
+.status-pill:hover{opacity:.85;transform:translateY(-1px);}
+.status-pill.active{opacity:1;border-color:currentColor;box-shadow:0 2px 8px -2px rgba(0,0,0,.15);}
+.status-pill.b-livre{background:var(--success-soft);color:#1E8E3E;}
+.status-pill.b-pernoite{background:var(--danger-soft);color:#C0293B;}
+.status-pill.b-manutencao{background:var(--warning-soft);color:#96760A;}
+.status-pill.b-viagem{background:var(--info-soft);color:#127488;}
+.status-pill.b-reserva{background:var(--purple-soft);color:#6B41A8;}
+.status-pill.b-bloqueado{background:var(--gray-soft);color:#4A5568;}
 .table-foot{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;font-size:12.5px;color:var(--text-soft);}
 .pager{display:flex;gap:6px;}
 .pager button{width:30px;height:30px;border-radius:8px;background:var(--bg);font-weight:600;font-size:12.5px;}
@@ -490,30 +531,63 @@ tbody tr:last-child td{border-bottom:none;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 
 /* ---- RESPONSIVE ---- */
+/* Desktop grande (>1300px): layout padrão definido acima */
 @media (min-width:1180px){.today-pill{display:block;}}
-@media (max-width:1200px){
+
+/* Notebook / desktop padrão (1024–1300px) */
+@media (max-width:1300px){
   .kpi-grid{grid-template-columns:repeat(3,1fr);}
   .grid-2{grid-template-columns:1fr;}
+  .history-grid{grid-template-columns:1fr;}
 }
-@media (max-width:860px){
-  .sidebar{position:fixed;left:0;top:0;height:100vh;transform:translateX(-100%);box-shadow:var(--shadow-lg);}
+
+/* Tablet (≤1024px): sidebar vira gaveta (mesmo comportamento do celular) */
+@media (max-width:1024px){
+  .sidebar{position:fixed;left:0;top:0;height:100vh;transform:translateX(-100%);box-shadow:var(--shadow-lg);z-index:60;}
   .app.mobile-open .sidebar{transform:translateX(0);}
   .app.collapsed .sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);}
-  .app.collapsed .brand-text,.app.collapsed .nav-item span.label,.app.collapsed .nav-badge{display:flex;}
+  .app.collapsed .brand-text,.app.collapsed .nav-item span.label,.app.collapsed .nav-badge,.app.collapsed .sidebar-lock-badge .label{display:flex;}
   .app.collapsed .nav-item span.label{display:inline;}
+  .kpi-grid{grid-template-columns:repeat(3,1fr);}
+  .content{padding:22px 20px 50px;}
+  .detail-info-grid{grid-template-columns:repeat(2,1fr);}
+  .detail-stats-row{grid-template-columns:repeat(2,1fr);}
+  .status-row{flex-direction:column;align-items:flex-start;gap:12px;}
+  .status-pill-group{width:100%;}
+}
+
+/* Celular / tablet retrato pequeno (≤768px) */
+@media (max-width:768px){
   .kpi-grid{grid-template-columns:repeat(2,1fr);}
   .content{padding:20px 16px 50px;}
   .search-wrap{display:none;}
   .modal-body{grid-template-columns:1fr;}
+  .table-head-row{flex-direction:column;align-items:flex-start;}
+  .table-head-row > div:last-child{width:100%;}
+  .table-head-row .btn{flex:1;justify-content:center;}
+  .user-meta{display:none;}
+  .today-pill{display:none;}
 }
+
+/* Celular pequeno (≤520px) */
 @media (max-width:520px){
   .kpi-grid{grid-template-columns:1fr 1fr;}
   .page-head{flex-direction:column;align-items:flex-start;}
+  .page-head .head-actions{width:100%;}
+  .page-head .head-actions .btn{flex:1;justify-content:center;}
   thead{display:none;}
   table,tbody,tr,td{display:block;width:100%;}
   tbody tr{border-bottom:8px solid var(--bg);padding:14px 0;}
-  tbody td{padding:6px 24px;border-bottom:none;display:flex;justify-content:space-between;gap:10px;}
+  tbody td{padding:6px 24px;border-bottom:none;display:flex;justify-content:space-between;gap:10px;align-items:center;}
   tbody td::before{content:attr(data-label);font-weight:700;color:var(--text-soft);font-size:11px;text-transform:uppercase;}
+  .group-row td{display:block;}
+  .group-row td::before{content:none;}
+  .detail-info-grid,.detail-stats-row{grid-template-columns:1fr 1fr;}
+  .modal{width:94vw;}
+}
+@media (max-width:380px){
+  .kpi-grid{grid-template-columns:1fr;}
+  .detail-info-grid,.detail-stats-row{grid-template-columns:1fr;}
 }
 .mobile-scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:35;}
 .app.mobile-open .mobile-scrim{display:block;}
@@ -537,20 +611,25 @@ tbody tr:last-child td{border-bottom:none;}
     <nav class="nav-scroll">
       <div class="nav-group-label">Operação</div>
       <a class="nav-item active" data-tab="dashboard"><i class="ic fa-solid fa-grid-2"></i><span class="label">Dashboard</span></a>
-      <a class="nav-item" data-tab="veiculos"><i class="ic fa-solid fa-truck"></i><span class="label">Veículos</span><span class="nav-badge">42</span></a>
+      <a class="nav-item" data-tab="status"><i class="ic fa-solid fa-clipboard-check"></i><span class="label">Atualização de Status</span></a>
+      <a class="nav-item" data-tab="veiculos"><i class="ic fa-solid fa-truck"></i><span class="label">Veículos</span><span class="nav-badge" id="navBadgeVeiculos">13</span></a>
       <a class="nav-item" data-tab="motoristas"><i class="ic fa-solid fa-id-card"></i><span class="label">Motoristas</span></a>
       <a class="nav-item" data-tab="transportadoras"><i class="ic fa-solid fa-building"></i><span class="label">Transportadoras</span></a>
       <a class="nav-item" data-tab="rotas"><i class="ic fa-solid fa-route"></i><span class="label">Rotas</span></a>
 
       <div class="nav-group-label">Monitoramento</div>
-      <a class="nav-item" data-tab="manutencao"><i class="ic fa-solid fa-screwdriver-wrench"></i><span class="label">Manutenção</span><span class="nav-badge">5</span></a>
-      <a class="nav-item" data-tab="ocorrencias"><i class="ic fa-solid fa-triangle-exclamation"></i><span class="label">Ocorrências</span><span class="nav-badge">2</span></a>
+      <a class="nav-item" data-tab="manutencao"><i class="ic fa-solid fa-screwdriver-wrench"></i><span class="label">Manutenção</span><span class="nav-badge" id="navBadgeManutencao">0</span></a>
+      <a class="nav-item" data-tab="ocorrencias"><i class="ic fa-solid fa-triangle-exclamation"></i><span class="label">Ocorrências</span></a>
       <a class="nav-item" data-tab="relatorios"><i class="ic fa-solid fa-chart-line"></i><span class="label">Relatórios</span></a>
 
       <div class="nav-group-label">Sistema</div>
-      <a class="nav-item" data-tab="usuarios"><i class="ic fa-solid fa-users"></i><span class="label">Usuários</span></a>
+      <a class="nav-item" data-tab="usuarios"><i class="ic fa-solid fa-user-lock"></i><span class="label">Acesso e Segurança</span></a>
       <a class="nav-item" data-tab="config"><i class="ic fa-solid fa-gear"></i><span class="label">Configurações</span></a>
     </nav>
+    <div class="sidebar-lock-badge" id="lockBadge" onclick="handleLockClick()">
+      <i class="fa-solid fa-lock" id="lockIcon"></i>
+      <span class="label" id="lockLabel">Modo Visualização</span>
+    </div>
 
     <div class="sidebar-foot">
       <button class="collapse-btn" onclick="toggleCollapse()">
@@ -585,7 +664,7 @@ tbody tr:last-child td{border-bottom:none;}
         <button class="icon-btn" title="Exportar" onclick="exportData()"><i class="fa-solid fa-file-export"></i></button>
         <button class="icon-btn" title="Notificações"><i class="fa-regular fa-bell"></i><span class="dot"></span></button>
         <button class="icon-btn" title="Alternar tema" onclick="toggleTheme()"><i class="fa-solid fa-moon" id="themeIcon"></i></button>
-        <button class="icon-btn" title="Configurações" id="btnSyncStatus" onclick="openSettingsModal()"><i class="fa-solid fa-gear"></i></button>
+        <button class="icon-btn" title="Configurações" id="btnSyncStatus" onclick="requireUnlock(openSettingsModal)"><i class="fa-solid fa-gear"></i></button>
         <div class="user-chip">
           <div class="user-avatar">RC</div>
           <div class="user-meta">
@@ -600,6 +679,7 @@ tbody tr:last-child td{border-bottom:none;}
     <!-- ---- CONTENT ---- -->
     <main class="content">
 
+    <div id="view-dashboard" class="view">
       <div class="page-head fade-in">
         <div>
           <h1>Painel de Frota</h1>
@@ -607,7 +687,7 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
         <div class="head-actions">
           <button class="btn btn-outline" onclick="exportData()"><i class="fa-solid fa-file-export"></i> Exportar</button>
-          <button class="btn btn-primary" onclick="openModal()"><i class="fa-solid fa-plus"></i> Novo Veículo</button>
+          <button class="btn btn-primary" onclick="goToView('status')"><i class="fa-solid fa-clipboard-check"></i> Atualizar Status</button>
         </div>
       </div>
 
@@ -730,14 +810,26 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
         <div class="history-grid" id="splitGrid" style="margin-top:16px;"></div>
       </div>
+    </div><!-- /view-dashboard -->
 
-      <!-- TABLE -->
+    <!-- ===================== VIEW: VEÍCULOS (cadastro) ===================== -->
+    <div id="view-veiculos" class="view" style="display:none;">
+      <div class="page-head fade-in">
+        <div>
+          <h1>Veículos</h1>
+          <p>Cadastro e manutenção dos dados da frota</p>
+        </div>
+        <div class="head-actions">
+          <button class="btn btn-primary lock-gated" onclick="requireUnlock(openModal)"><i class="fa-solid fa-plus"></i> Novo Veículo</button>
+        </div>
+      </div>
+
       <div class="table-panel fade-in">
         <div class="table-head-row">
           <div>
             <h3>Frota Monitorada</h3>
-            <span class="cell-sub" id="resultCount">42 veículos</span>
-            <span class="sheets-status" id="sheetsStatusPill" onclick="openSettingsModal()">
+            <span class="cell-sub" id="resultCount">13 veículos</span>
+            <span class="sheets-status" id="sheetsStatusPill" onclick="requireUnlock(openSettingsModal)">
               <i class="fa-solid fa-table-cells"></i> <span id="sheetsStatusText">Google Sheets não conectado</span>
             </span>
           </div>
@@ -745,13 +837,16 @@ tbody tr:last-child td{border-bottom:none;}
             <button class="btn btn-outline" onclick="syncNow()" title="Sincronizar com o Google Sheets">
               <i class="fa-solid fa-cloud-arrow-up" id="syncIcon"></i> Sincronizar
             </button>
-            <button class="btn btn-outline" onclick="saveToStorage(true)" title="Salvar os dados atuais para consulta posterior">
+            <button class="btn btn-outline lock-gated" onclick="requireUnlock(()=>saveToStorage(true))" title="Salvar os dados atuais para consulta posterior">
               <i class="fa-regular fa-floppy-disk"></i> Salvar Dados
             </button>
-            <button class="btn btn-outline" onclick="exportBackupJSON()" title="Baixar backup completo (.json)">
+            <button class="btn btn-outline" onclick="exportData()" title="Exportar relatório em CSV">
+              <i class="fa-solid fa-file-export"></i> Relatório CSV
+            </button>
+            <button class="btn btn-outline lock-gated" onclick="requireUnlock(exportBackupJSON)" title="Baixar backup completo (.json)">
               <i class="fa-solid fa-download"></i> Exportar Backup
             </button>
-            <button class="btn btn-outline" onclick="document.getElementById('importFile').click()" title="Restaurar a partir de um backup">
+            <button class="btn btn-outline lock-gated" onclick="requireUnlock(()=>document.getElementById('importFile').click())" title="Restaurar a partir de um backup">
               <i class="fa-solid fa-upload"></i> Importar
             </button>
             <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importBackupJSON(this.files[0])">
@@ -791,18 +886,100 @@ tbody tr:last-child td{border-bottom:none;}
         </div>
 
         <div class="table-foot">
-          <span id="pageInfo">Mostrando 1–8 de 42</span>
+          <span id="pageInfo">Mostrando 1–8 de 13</span>
           <div class="pager">
             <button><i class="fa-solid fa-chevron-left"></i></button>
             <button class="active">1</button>
             <button>2</button>
-            <button>3</button>
             <button><i class="fa-solid fa-chevron-right"></i></button>
           </div>
         </div>
       </div>
+    </div><!-- /view-veiculos -->
+
+    <!-- ===================== VIEW: ATUALIZAÇÃO DE STATUS ===================== -->
+    <div id="view-status" class="view" style="display:none;">
+      <div class="page-head fade-in">
+        <div>
+          <h1>Atualização de Status</h1>
+          <p>Marque o status atual de cada veículo — agrupado por perfil</p>
+        </div>
+        <div class="head-actions">
+          <span class="sync-pill"><span class="sync-dot"></span> <span id="statusUpdCount">0</span> atualizados hoje</span>
+        </div>
+      </div>
+      <div class="filter-tabs" id="statusPageSearch" style="padding:0 0 18px;">
+        <div class="search-wrap" style="max-width:420px;height:44px;">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input id="statusSearchInput" type="text" placeholder="Buscar por placa, motorista ou transportadora...">
+        </div>
+      </div>
+      <div id="statusGroups"></div>
+    </div><!-- /view-status -->
+
+    <!-- ===================== VIEW: MOTORISTAS ===================== -->
+    <div id="view-motoristas" class="view" style="display:none;">
+      <div class="page-head fade-in">
+        <div>
+          <h1>Motoristas</h1>
+          <p>Relação de motoristas ativos, extraída dos veículos cadastrados</p>
+        </div>
+      </div>
+      <div class="table-panel fade-in">
+        <div class="table-head-row"><div><h3>Motoristas na Frota</h3><span class="cell-sub" id="motoristasCount">0 motoristas</span></div></div>
+        <div style="overflow-x:auto;">
+          <table>
+            <thead><tr><th>Motorista</th><th>Placa</th><th>Transportadora</th><th>Status Atual</th><th style="text-align:right;">Ações</th></tr></thead>
+            <tbody id="motoristasTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div><!-- /view-motoristas -->
+
+    <!-- ===================== VIEW: TRANSPORTADORAS ===================== -->
+    <div id="view-transportadoras" class="view" style="display:none;">
+      <div class="page-head fade-in">
+        <div>
+          <h1>Transportadoras</h1>
+          <p>Panorama consolidado por transportadora</p>
+        </div>
+      </div>
+      <div class="insights-list" id="transportadorasGrid" style="margin-top:0;"></div>
+    </div><!-- /view-transportadoras -->
+
+    <!-- ===================== VIEW: SEGURANÇA / MASTER KEY ===================== -->
+    <div id="view-seguranca" class="view" style="display:none;">
+      <div class="page-head fade-in">
+        <div>
+          <h1>Acesso e Segurança</h1>
+          <p>Controle quem pode editar, excluir e configurar o painel</p>
+        </div>
+      </div>
+      <div class="insights-panel fade-in" style="max-width:560px;">
+        <div class="settings-note" style="background:var(--danger-soft);color:#C0293B;margin-bottom:16px;">
+          <i class="fa-solid fa-triangle-exclamation"></i> Isso é uma trava de uso local (evita edição acidental), não uma segurança real —
+          qualquer pessoa com acesso ao arquivo pode contornar via ferramentas do navegador. Para segurança de fato, é necessário um backend.
+        </div>
+        <div id="segurancaBody"></div>
+      </div>
+    </div><!-- /view-seguranca -->
+
+    <!-- ===================== VIEW: PLACEHOLDER (em construção) ===================== -->
+    <div id="view-placeholder" class="view" style="display:none;">
+      <div class="page-head fade-in">
+        <div>
+          <h1 id="placeholderTitle">Em construção</h1>
+          <p id="placeholderText">Essa área ainda não foi implementada.</p>
+        </div>
+      </div>
+      <div class="insights-panel fade-in" style="text-align:center;padding:60px 24px;">
+        <i class="fa-solid fa-hammer" style="font-size:28px;color:var(--text-soft);margin-bottom:14px;display:block;"></i>
+        <p style="color:var(--text-soft);font-size:13.5px;">Essa página pode ser construída sob demanda — é só pedir.</p>
+      </div>
+    </div><!-- /view-placeholder -->
 
     </main>
+
   </div>
 </div>
 
@@ -883,6 +1060,10 @@ tbody tr:last-child td{border-bottom:none;}
           clique em <b>Implantar → Gerenciar implantações → ✏️ (editar) → Nova versão → Implantar</b>.
           A URL continua a mesma — não precisa reconectar no painel. A lista suspensa colorida de status
           só aparece em planilhas <b>novas</b> (criadas depois desta atualização).
+        </p>
+        <p style="margin-top:8px;font-size:11.5px;color:var(--text-soft);">
+          <b>Excluir dados direto na planilha:</b> apague a linha do veículo normalmente (botão direito → Excluir linha).
+          Depois, clique em "Sincronizar" no painel para trazer essa exclusão para cá.
         </p>
       </div>
     </div>
@@ -1051,18 +1232,20 @@ function renderTable(){
       </td>
       <td data-label="Transportadora">${v.transportadora}</td>
       <td data-label="Tipo">${tipo}</td>
-      <td data-label="Status">${statusSelectHTML(v)}</td>
+      <td data-label="Status"><span class="badge ${STATUS_MAP[v.status].cls}"><span class="bdot"></span>${STATUS_MAP[v.status].label}</span></td>
       <td data-label="Capacidade">${v.capMin.toLocaleString('pt-BR')} – ${v.capMax.toLocaleString('pt-BR')} kg</td>
       <td data-label="Atualizado"><span class="cell-sub">${v.upd}</span></td>
       <td data-label="Ações" style="text-align:right;">
         <div class="row-actions" style="justify-content:flex-end;">
           <button title="Ver detalhes" onclick="openDetailModal('${v.placa}')"><i class="fa-regular fa-eye"></i></button>
-          <button title="Editar" onclick="editVehicle('${v.placa}')"><i class="fa-regular fa-pen-to-square"></i></button>
-          <button title="Excluir" onclick="removeVehicle('${v.placa}')"><i class="fa-regular fa-trash-can"></i></button>
+          <button title="Editar" onclick="requireUnlock(()=>editVehicle('${v.placa}'))"><i class="fa-regular fa-pen-to-square"></i></button>
+          <button title="Excluir" onclick="requireUnlock(()=>removeVehicle('${v.placa}'))"><i class="fa-regular fa-trash-can"></i></button>
         </div>
       </td>
     </tr>`;
   }).join('');
+  document.getElementById('navBadgeVeiculos').textContent = fleet.length;
+  document.getElementById('navBadgeManutencao').textContent = fleet.filter(v=>v.status==='manutencao').length;
 }
 
 function updateVehicleStatus(placa, newStatus){
@@ -1171,7 +1354,7 @@ function closeDetailModal(){
 function editFromDetail(){
   const placa = currentDetailPlaca;
   closeDetailModal();
-  if(placa) editVehicle(placa);
+  if(placa) requireUnlock(()=>editVehicle(placa));
 }
 document.getElementById('detailModal').addEventListener('click', e=>{
   if(e.target.id === 'detailModal') closeDetailModal();
@@ -1190,6 +1373,204 @@ function seedVehicleHistory(){
     }];
   });
   return hist;
+}
+
+/* ==========================================================================
+   CHAVE MESTRA — trava de uso local (não é segurança real, ver aviso na UI)
+   ========================================================================== */
+const MASTERKEY_HASH_KEY = 'logtrack_masterkey_hash';
+let isUnlocked = sessionStorage.getItem('logtrack_unlocked') === '1';
+
+async function sha256(text){
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function hasMasterKey(){
+  return !!localStorage.getItem(MASTERKEY_HASH_KEY);
+}
+function updateLockUI(){
+  const icon = document.getElementById('lockIcon');
+  const label = document.getElementById('lockLabel');
+  const badge = document.getElementById('lockBadge');
+  if(isUnlocked){
+    icon.className = 'fa-solid fa-lock-open';
+    label.textContent = 'Modo Edição Ativo';
+    badge.classList.add('unlocked');
+  } else {
+    icon.className = 'fa-solid fa-lock';
+    label.textContent = 'Modo Visualização';
+    badge.classList.remove('unlocked');
+  }
+}
+async function handleLockClick(){
+  if(isUnlocked){
+    isUnlocked = false;
+    sessionStorage.removeItem('logtrack_unlocked');
+    updateLockUI();
+    showToast('Modo edição bloqueado.', 'info', 'fa-lock');
+    return;
+  }
+  await promptUnlock();
+}
+async function promptUnlock(){
+  if(!hasMasterKey()){
+    const key1 = prompt('Nenhuma chave mestra definida ainda.\nCrie a sua chave de acesso total:');
+    if(!key1) return false;
+    const key2 = prompt('Confirme a chave mestra:');
+    if(key1 !== key2){ showToast('As chaves não coincidem. Tente novamente.', 'info', 'fa-circle-exclamation'); return false; }
+    localStorage.setItem(MASTERKEY_HASH_KEY, await sha256(key1));
+    isUnlocked = true;
+    sessionStorage.setItem('logtrack_unlocked','1');
+    updateLockUI();
+    showToast('Chave mestra criada. Modo edição desbloqueado.', 'success', 'fa-lock-open');
+    return true;
+  }
+  const attempt = prompt('Digite a chave mestra para desbloquear edição/exclusão:');
+  if(attempt === null) return false;
+  const hash = await sha256(attempt);
+  if(hash === localStorage.getItem(MASTERKEY_HASH_KEY)){
+    isUnlocked = true;
+    sessionStorage.setItem('logtrack_unlocked','1');
+    updateLockUI();
+    showToast('Modo edição desbloqueado.', 'success', 'fa-lock-open');
+    return true;
+  }
+  showToast('Chave incorreta.', 'info', 'fa-circle-exclamation');
+  return false;
+}
+async function requireUnlock(action){
+  if(isUnlocked){ action(); return; }
+  const ok = await promptUnlock();
+  if(ok) action();
+}
+function renderSegurancaView(){
+  const body = document.getElementById('segurancaBody');
+  const configured = hasMasterKey();
+  body.innerHTML = `
+    <div class="detail-info-grid" style="grid-template-columns:1fr 1fr;margin-bottom:20px;">
+      ${infoTile('Chave Mestra', configured ? 'Configurada' : 'Não configurada')}
+      ${infoTile('Estado Atual', isUnlocked ? 'Desbloqueado (edição ativa)' : 'Bloqueado (somente visualização)')}
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      ${isUnlocked ? '<button class="btn btn-outline" onclick="handleLockClick()"><i class="fa-solid fa-lock"></i> Bloquear agora</button>' : '<button class="btn btn-primary" onclick="promptUnlock().then(()=>renderSegurancaView())"><i class="fa-solid fa-lock-open"></i> Desbloquear</button>'}
+      ${configured ? '<button class="btn btn-outline" onclick="requireUnlock(changeMasterKey)"><i class="fa-solid fa-key"></i> Trocar chave mestra</button>' : ''}
+    </div>
+    <p style="font-size:12px;color:var(--text-soft);margin-top:16px;line-height:1.6;">
+      Enquanto bloqueado, qualquer pessoa pode visualizar dashboard, gráficos e relatórios, mas os botões de
+      cadastrar, editar, excluir, atualizar status, importar backup e configurar integrações ficam ocultos/travados
+      até a chave ser digitada corretamente. O desbloqueio vale para esta aba do navegador até você fechá-la ou clicar em "Bloquear agora".
+    </p>`;
+}
+async function changeMasterKey(){
+  const key1 = prompt('Nova chave mestra:');
+  if(!key1) return;
+  const key2 = prompt('Confirme a nova chave mestra:');
+  if(key1 !== key2){ showToast('As chaves não coincidem.', 'info', 'fa-circle-exclamation'); return; }
+  localStorage.setItem(MASTERKEY_HASH_KEY, await sha256(key1));
+  showToast('Chave mestra atualizada.', 'success', 'fa-key');
+  renderSegurancaView();
+}
+
+/* ==========================================================================
+   VIEW: ATUALIZAÇÃO DE STATUS (checkboxes visuais por veículo)
+   ========================================================================== */
+function statusPillsHTML(v){
+  return Object.entries(STATUS_MAP).map(([key,val])=>`
+    <button type="button" class="status-pill ${val.cls} ${v.status===key?'active':''}"
+      onclick="requireUnlock(()=>updateVehicleStatus('${v.placa}', '${key}'))">
+      <i class="fa-solid ${v.status===key?'fa-circle-check':'fa-circle'}"></i> ${val.label}
+    </button>`).join('');
+}
+function renderStatusView(){
+  const q = (document.getElementById('statusSearchInput').value || '').trim().toLowerCase();
+  let rows = fleet.filter(v=>{
+    if(!q) return true;
+    return (v.placa+v.motorista+v.transportadora).toLowerCase().includes(q);
+  }).slice().sort((a,b)=> perfilIndex(a.perfil) - perfilIndex(b.perfil));
+
+  const today = dateLabel(0);
+  const updatedToday = fleet.filter(v=>v.upd === 'agora mesmo').length;
+  document.getElementById('statusUpdCount').textContent = updatedToday;
+
+  const container = document.getElementById('statusGroups');
+  if(rows.length === 0){
+    container.innerHTML = '<div class="insights-empty">Nenhum veículo encontrado.</div>';
+    return;
+  }
+  let html = '';
+  let lastPerfil = null;
+  rows.forEach(v=>{
+    if(v.perfil !== lastPerfil){
+      lastPerfil = v.perfil;
+      const count = rows.filter(x=>x.perfil===v.perfil).length;
+      html += `<div class="status-group-title"><i class="fa-solid fa-layer-group"></i> ${PERFIL_LABELS[v.perfil]||'Sem perfil'} <span class="group-count">${count} veículo${count===1?'':'s'}</span></div>`;
+    }
+    html += `<div class="status-row">
+      <div class="status-row-info">
+        <div class="cell-plate">${v.placa}</div>
+        <div class="status-row-meta">
+          <span><i class="fa-regular fa-id-card"></i> ${v.motorista}</span>
+          <span><i class="fa-solid fa-building"></i> ${v.transportadora}</span>
+        </div>
+      </div>
+      <div class="status-pill-group">${statusPillsHTML(v)}</div>
+    </div>`;
+  });
+  container.innerHTML = html;
+}
+document.getElementById('statusSearchInput').addEventListener('input', renderStatusView);
+
+/* ==========================================================================
+   VIEW: MOTORISTAS (derivado dos veículos cadastrados)
+   ========================================================================== */
+function renderMotoristasView(){
+  const rows = fleet.slice().sort((a,b)=>a.motorista.localeCompare(b.motorista));
+  document.getElementById('motoristasCount').textContent = rows.length + ' motorista' + (rows.length===1?'':'s');
+  document.getElementById('motoristasTableBody').innerHTML = rows.map(v=>`
+    <tr>
+      <td data-label="Motorista">
+        <div class="cell-driver">
+          <div class="mini-avatar">${initials(v.motorista)}</div>
+          <div>${v.motorista}</div>
+        </div>
+      </td>
+      <td data-label="Placa"><span class="cell-plate">${v.placa}</span></td>
+      <td data-label="Transportadora">${v.transportadora}</td>
+      <td data-label="Status"><span class="badge ${STATUS_MAP[v.status].cls}"><span class="bdot"></span>${STATUS_MAP[v.status].label}</span></td>
+      <td data-label="Ações" style="text-align:right;">
+        <div class="row-actions" style="justify-content:flex-end;">
+          <button title="Editar" onclick="requireUnlock(()=>editVehicle('${v.placa}'))"><i class="fa-regular fa-pen-to-square"></i></button>
+        </div>
+      </td>
+    </tr>`).join('');
+}
+
+/* ==========================================================================
+   VIEW: TRANSPORTADORAS (consolidado)
+   ========================================================================== */
+function renderTransportadorasView(){
+  const map = {};
+  fleet.forEach(v=>{
+    if(!map[v.transportadora]) map[v.transportadora] = [];
+    map[v.transportadora].push(v);
+  });
+  const container = document.getElementById('transportadorasGrid');
+  const names = Object.keys(map).sort();
+  if(names.length === 0){ container.innerHTML = '<div class="insights-empty">Nenhuma transportadora cadastrada.</div>'; return; }
+  container.innerHTML = names.map(name=>{
+    const list = map[name];
+    const livres = list.filter(v=>v.status==='livre').length;
+    const indisponiveis = list.filter(v=>['pernoite','manutencao','bloqueado'].includes(v.status)).length;
+    const tipo = list.every(v=>v.tipoFrota==='propria') ? 'Frota Própria' : list.every(v=>v.tipoFrota==='terceiros') ? 'Terceiros' : 'Mista';
+    return `<div class="insight-card info">
+      <div class="insight-ic"><i class="fa-solid fa-building"></i></div>
+      <div style="flex:1;">
+        <div class="insight-title">${name}</div>
+        <div class="insight-desc">${list.length} veículo(s) — ${tipo} · ${livres} livre(s) · ${indisponiveis} indisponível(is)</div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function skeletonTable(){
@@ -1511,7 +1892,10 @@ document.getElementById('tipoFilterTabs').addEventListener('click', e=>{
   currentTipoFilter = btn.dataset.tipo;
   renderTable();
 });
-document.getElementById('searchInput').addEventListener('input', renderTable);
+document.getElementById('searchInput').addEventListener('input', ()=>{
+  if(document.getElementById('searchInput').value.trim()){ showView('veiculos'); document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active')); document.querySelector('.nav-item[data-tab="veiculos"]').classList.add('active'); }
+  renderTable();
+});
 document.getElementById('searchType').addEventListener('change', renderTable);
 
 /* ==========================================================================
@@ -1637,7 +2021,7 @@ function refreshData(){
   });
   setTimeout(async ()=>{
     if(sheetsUrl){
-      await pullFromSheets(true);
+      await pullFromSheets(true, true);
     }
     renderTable();
     refreshAnalytics();
@@ -1912,7 +2296,7 @@ function normalizeSheetRow(row){
   };
 }
 
-async function pullFromSheets(silent){
+async function pullFromSheets(silent, force){
   if(!sheetsUrl) return false;
   updateSheetsStatusPill('syncing');
   try{
@@ -1920,7 +2304,7 @@ async function pullFromSheets(silent){
     if(!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     if(!Array.isArray(data)) throw new Error('formato inesperado');
-    if(data.length){
+    if(data.length || force){
       fleet = data.map(normalizeSheetRow);
     }
     sheetsConnected = true;
@@ -1958,14 +2342,16 @@ async function pushToSheets(silent){
 }
 
 async function syncNow(){
-  if(!sheetsUrl){ openSettingsModal(); return; }
+  if(!sheetsUrl){ requireUnlock(openSettingsModal); return; }
   const icon = document.getElementById('syncIcon');
   icon.classList.add('fa-spin');
-  const ok = await pushToSheets();
+  const ok = await pullFromSheets(false, true);
   icon.classList.remove('fa-spin');
   if(ok){
+    renderTable();
+    refreshAnalytics();
     saveToStorage();
-    showToast('Frota sincronizada com o Google Sheets.', 'success', 'fa-cloud-arrow-up');
+    showToast('Frota sincronizada com o Google Sheets — inclusões e exclusões feitas lá já refletem aqui.', 'success', 'fa-cloud-arrow-down');
   }
 }
 
@@ -1978,12 +2364,58 @@ function toggleCollapse(){
 function toggleMobile(open){
   document.getElementById('appShell').classList.toggle('mobile-open', open);
 }
+
+/* ==========================================================================
+   NAVEGAÇÃO REAL DO MENU LATERAL
+   ========================================================================== */
+const VIEW_IDS = ['dashboard','status','veiculos','motoristas','transportadoras','rotas','manutencao','ocorrencias','relatorios','usuarios','config'];
+const PLACEHOLDER_TEXT = {
+  rotas: ['Rotas', 'Planejamento e acompanhamento de rotas — ainda não implementado nesta versão.'],
+  ocorrencias: ['Ocorrências', 'Registro de ocorrências em viagem (avarias, atrasos, sinistros) — ainda não implementado nesta versão.'],
+};
+
+function goToView(tab){
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  const navBtn = document.querySelector(`.nav-item[data-tab="${tab}"]`);
+  if(navBtn) navBtn.classList.add('active');
+  toggleMobile(false);
+
+  // Atalhos: alguns itens do menu não são páginas próprias
+  if(tab === 'config'){ requireUnlock(openSettingsModal); return; }
+  if(tab === 'manutencao'){
+    showView('veiculos');
+    document.querySelectorAll('#filterTabs .filter-tab').forEach(b=>b.classList.remove('active'));
+    const btn = document.querySelector('#filterTabs .filter-tab[data-status="manutencao"]');
+    if(btn) btn.classList.add('active');
+    currentFilter = 'manutencao';
+    renderTable();
+    return;
+  }
+  if(tab === 'relatorios'){ showView('dashboard'); return; }
+  if(tab === 'rotas' || tab === 'ocorrencias'){
+    document.getElementById('placeholderTitle').textContent = PLACEHOLDER_TEXT[tab][0];
+    document.getElementById('placeholderText').textContent = PLACEHOLDER_TEXT[tab][1];
+    showView('placeholder');
+    return;
+  }
+  if(tab === 'usuarios'){ renderSegurancaView(); showView('seguranca'); return; }
+
+  showView(tab);
+  if(tab === 'status') renderStatusView();
+  if(tab === 'motoristas') renderMotoristasView();
+  if(tab === 'transportadoras') renderTransportadorasView();
+}
+
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.style.display = 'none');
+  const el = document.getElementById('view-' + name);
+  if(el) el.style.display = 'block';
+  document.querySelector('main.content').scrollTop = 0;
+  window.scrollTo({top:0, behavior:'instant'});
+}
+
 document.querySelectorAll('.nav-item').forEach(item=>{
-  item.addEventListener('click', ()=>{
-    document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
-    item.classList.add('active');
-    toggleMobile(false);
-  });
+  item.addEventListener('click', ()=> goToView(item.dataset.tab));
 });
 
 let isDark = false;
@@ -2151,6 +2583,7 @@ const hadSavedVehicleHistory = loadVehicleHistoryFromStorage();
 if(!hadSavedHistory) triggerHistory = seedHistory();
 if(!hadSavedVehicleHistory) vehicleHistory = seedVehicleHistory();
 updateSheetsStatusPill();
+updateLockUI();
 skeletonTable();
 
 (async function initFleet(){
