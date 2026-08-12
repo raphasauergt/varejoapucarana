@@ -296,6 +296,7 @@ input,select{font-family:inherit;}
 
 /* ---- RESUMO DO PERÍODO (histórico de gatilhos) ---- */
 .history-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;}
+.split-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
 .rank-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--border);}
 .rank-row:last-child{border-bottom:none;}
 .rank-dot{width:8px;height:8px;min-width:8px;border-radius:50%;}
@@ -474,6 +475,29 @@ tbody tr:last-child td{border-bottom:none;}
 .status-pill.b-viagem{background:var(--info-soft);color:#127488;}
 .status-pill.b-reserva{background:var(--purple-soft);color:#6B41A8;}
 .status-pill.b-bloqueado{background:var(--gray-soft);color:#4A5568;}
+
+/* ---- VIEW: PLANILHA DE STATUS (estilo grade densa) ---- */
+.sheet-table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow-sm);}
+.sheet-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.sheet-table thead th{
+  background:var(--sidebar);color:#B9E8C9;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  padding:11px 14px;text-align:left;position:sticky;top:0;white-space:nowrap;
+}
+.sheet-table thead th.center{text-align:center;}
+.sheet-table tbody td{padding:9px 14px;border-bottom:1px solid var(--border);white-space:nowrap;}
+.sheet-table tbody tr:nth-child(even){background:var(--bg);}
+.sheet-table tbody tr:hover{background:var(--info-soft);}
+.sheet-table .sheet-group-row td{
+  background:var(--gray-soft) !important;font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.5px;
+  color:var(--text-soft);padding:8px 14px;
+}
+.sheet-check{width:18px;height:18px;cursor:pointer;accent-color:var(--primary);}
+.sheet-status-select{
+  border:none;border-radius:16px;padding:5px 10px;font-size:11.5px;font-weight:700;cursor:pointer;outline:none;
+}
+.sheet-foot{display:flex;justify-content:flex-end;padding:14px 18px;background:var(--warning-soft);border-top:2px solid var(--warning);}
+.sheet-foot .sheet-total{font-size:15px;font-weight:800;color:#7A5D00;}
+.sheet-scroll{overflow-x:auto;}
 .table-foot{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;font-size:12.5px;color:var(--text-soft);}
 .pager{display:flex;gap:6px;}
 .pager button{width:30px;height:30px;border-radius:8px;background:var(--bg);font-weight:600;font-size:12.5px;}
@@ -539,6 +563,7 @@ tbody tr:last-child td{border-bottom:none;}
   .kpi-grid{grid-template-columns:repeat(3,1fr);}
   .grid-2{grid-template-columns:1fr;}
   .history-grid{grid-template-columns:1fr;}
+  .split-grid-3{grid-template-columns:1fr;}
 }
 
 /* Tablet (≤1024px): sidebar vira gaveta (mesmo comportamento do celular) */
@@ -808,7 +833,7 @@ tbody tr:last-child td{border-bottom:none;}
           <h3><i class="fa-solid fa-scale-balanced"></i> Frota Própria x Terceiros</h3>
           <span style="font-size:12px;color:var(--text-soft);">Distinção aplicada em todos os relatórios e exportações</span>
         </div>
-        <div class="history-grid" id="splitGrid" style="margin-top:16px;"></div>
+        <div class="split-grid-3" id="splitGrid" style="margin-top:16px;"></div>
       </div>
     </div><!-- /view-dashboard -->
 
@@ -864,7 +889,8 @@ tbody tr:last-child td{border-bottom:none;}
         <div class="filter-tabs" id="tipoFilterTabs" style="padding-top:0;">
           <button class="filter-tab active" data-tipo="todos">Toda a Frota</button>
           <button class="filter-tab" data-tipo="propria">Frota Própria</button>
-          <button class="filter-tab" data-tipo="terceiros">Terceiros</button>
+          <button class="filter-tab" data-tipo="agregado">Agregados</button>
+          <button class="filter-tab" data-tipo="spot">Spot</button>
         </div>
 
         <div style="overflow-x:auto;">
@@ -908,13 +934,18 @@ tbody tr:last-child td{border-bottom:none;}
           <span class="sync-pill"><span class="sync-dot"></span> <span id="statusUpdCount">0</span> atualizados hoje</span>
         </div>
       </div>
-      <div class="filter-tabs" id="statusPageSearch" style="padding:0 0 18px;">
+      <div class="filter-tabs" id="statusPageSearch" style="padding:0 0 14px;justify-content:space-between;flex-wrap:wrap;gap:14px;">
         <div class="search-wrap" style="max-width:420px;height:44px;">
           <i class="fa-solid fa-magnifying-glass"></i>
           <input id="statusSearchInput" type="text" placeholder="Buscar por placa, motorista ou transportadora...">
         </div>
+        <div class="chip-toggle" id="statusViewToggle">
+          <button data-mode="cards">Cartões</button>
+          <button class="active" data-mode="sheet">Planilha</button>
+        </div>
       </div>
-      <div id="statusGroups"></div>
+      <div id="statusGroups" style="display:none;"></div>
+      <div id="statusSheetWrap"></div>
     </div><!-- /view-status -->
 
     <!-- ===================== VIEW: MOTORISTAS ===================== -->
@@ -1011,10 +1042,11 @@ tbody tr:last-child td{border-bottom:none;}
       </div>
       <div class="field"><label>Transportadora</label><input id="fTransportadora" placeholder="Nome da transportadora"></div>
       <div class="field">
-        <label>Tipo de Frota</label>
+        <label>Origem</label>
         <select id="fTipoFrota">
           <option value="propria">Frota Própria</option>
-          <option value="terceiros">Terceiros</option>
+          <option value="agregado">Agregados</option>
+          <option value="spot">Spot</option>
         </select>
       </div>
       <div class="field"><label>Peso Mínimo (kg)</label><input id="fCapMin" type="number" placeholder="Ex: 6000"></div>
@@ -1128,20 +1160,29 @@ function perfilIndex(perfil){
   return i === -1 ? PERFIL_ORDER.length : i;
 }
 
+/* Origem do veículo (substitui o antigo binário Própria/Terceiros) */
+const ORIGEM_LABELS = {propria:'Frota Própria', agregado:'Agregados', spot:'Spot'};
+const ORIGEM_ORDER = ['propria','agregado','spot'];
+function origemBadgeHTML(tipoFrota){
+  const cls = tipoFrota === 'propria' ? 'b-viagem' : tipoFrota === 'spot' ? 'b-manutencao' : 'b-bloqueado';
+  const dotColor = tipoFrota === 'propria' ? 'var(--primary)' : '';
+  return `<span class="badge ${cls}"${tipoFrota==='propria'?' style="background:var(--info-soft);color:var(--primary)"':''}><span class="bdot"${dotColor?` style="background:${dotColor}"`:''}></span>${ORIGEM_LABELS[tipoFrota] || tipoFrota}</span>`;
+}
+
 let DEFAULT_FLEET = [
-  {placa:'RTA4E12', modelo:'Volvo FH 540', motorista:'Carlos Menezes', transportadora:'Transnorte Log.', tipoFrota:'propria', perfil:'truck', status:'viagem', capMin:8000, capMax:24000, upd:'há 4 min', diasParado:0},
-  {placa:'QWE2B34', modelo:'Scania R450', motorista:'Ana Beatriz Souza', transportadora:'RodoExpress', tipoFrota:'terceiros', perfil:'bitruck', status:'livre', capMin:6000, capMax:22000, upd:'há 12 min', diasParado:0},
-  {placa:'PLC9K21', modelo:'Mercedes Actros', motorista:'João Pedro Lima', transportadora:'Transnorte Log.', tipoFrota:'propria', perfil:'truck', status:'pernoite', capMin:5000, capMax:18000, upd:'há 1 h', diasParado:1},
-  {placa:'XYZ1A88', modelo:'DAF XF', motorista:'Fernanda Rocha', transportadora:'LogVale Cargas', tipoFrota:'terceiros', perfil:'toco', status:'manutencao', capMin:6000, capMax:20000, upd:'há 2 h', diasParado:4},
-  {placa:'MNB7C45', modelo:'Volvo FH 460', motorista:'Ricardo Nunes', transportadora:'RodoExpress', tipoFrota:'terceiros', perfil:'bitruck', status:'viagem', capMin:8000, capMax:24000, upd:'há 8 min', diasParado:0},
-  {placa:'GHT3D19', modelo:'Iveco Hi-Way', motorista:'Patrícia Alves', transportadora:'TransCarga Sul', tipoFrota:'terceiros', perfil:'toco', status:'reserva', capMin:4000, capMax:16000, upd:'há 40 min', diasParado:2},
-  {placa:'ZXP5F67', modelo:'Scania R500', motorista:'Marcos Vinícius', transportadora:'LogVale Cargas', tipoFrota:'terceiros', perfil:'bitruck', status:'bloqueado', capMin:7000, capMax:23000, upd:'há 3 h', diasParado:6},
-  {placa:'WER8G90', modelo:'Volvo VM 270', motorista:'Juliana Castro', transportadora:'Frota Própria', tipoFrota:'propria', perfil:'34leve', status:'livre', capMin:4000, capMax:15000, upd:'há 25 min', diasParado:0},
-  {placa:'ASD2H33', modelo:'Mercedes Atego', motorista:'Bruno Ferreira', transportadora:'Frota Própria', tipoFrota:'propria', perfil:'vuc', status:'viagem', capMin:3000, capMax:12000, upd:'há 6 min', diasParado:0},
-  {placa:'TYU6J78', modelo:'Scania G450', motorista:'Camila Duarte', transportadora:'Transnorte Log.', tipoFrota:'propria', perfil:'toco', status:'pernoite', capMin:6000, capMax:21000, upd:'há 55 min', diasParado:3},
-  {placa:'IOP4K56', modelo:'Volvo FH 540', motorista:'Diego Santana', transportadora:'Frota Própria', tipoFrota:'propria', perfil:'truck', status:'livre', capMin:8000, capMax:24000, upd:'há 18 min', diasParado:0},
-  {placa:'LKJ9M23', modelo:'DAF CF', motorista:'Vanessa Lima', transportadora:'TransCarga Sul', tipoFrota:'terceiros', perfil:'34adapt', status:'manutencao', capMin:5000, capMax:17000, upd:'há 1 h', diasParado:5},
-  {placa:'HNV5L02', modelo:'Fiat Fiorino', motorista:'Rafael Souza', transportadora:'Frota Própria', tipoFrota:'propria', perfil:'van', status:'livre', capMin:500, capMax:650, upd:'há 30 min', diasParado:0},
+  {placa:'RTA4E12', modelo:'Volvo FH 540', motorista:'Carlos Menezes', transportadora:'Transnorte Log.', tipoFrota:'agregado', perfil:'truck', status:'viagem', capMin:8000, capMax:24000, upd:'há 4 min', diasParado:0, validadoEm:null},
+  {placa:'QWE2B34', modelo:'Scania R450', motorista:'Ana Beatriz Souza', transportadora:'RodoExpress', tipoFrota:'spot', perfil:'bitruck', status:'livre', capMin:6000, capMax:22000, upd:'há 12 min', diasParado:0, validadoEm:null},
+  {placa:'PLC9K21', modelo:'Mercedes Actros', motorista:'João Pedro Lima', transportadora:'Transnorte Log.', tipoFrota:'agregado', perfil:'truck', status:'pernoite', capMin:5000, capMax:18000, upd:'há 1 h', diasParado:1, validadoEm:null},
+  {placa:'XYZ1A88', modelo:'DAF XF', motorista:'Fernanda Rocha', transportadora:'LogVale Cargas', tipoFrota:'agregado', perfil:'toco', status:'manutencao', capMin:6000, capMax:20000, upd:'há 2 h', diasParado:4, validadoEm:null},
+  {placa:'MNB7C45', modelo:'Volvo FH 460', motorista:'Ricardo Nunes', transportadora:'RodoExpress', tipoFrota:'spot', perfil:'bitruck', status:'viagem', capMin:8000, capMax:24000, upd:'há 8 min', diasParado:0, validadoEm:null},
+  {placa:'GHT3D19', modelo:'Iveco Hi-Way', motorista:'Patrícia Alves', transportadora:'TransCarga Sul', tipoFrota:'agregado', perfil:'toco', status:'reserva', capMin:4000, capMax:16000, upd:'há 40 min', diasParado:2, validadoEm:null},
+  {placa:'ZXP5F67', modelo:'Scania R500', motorista:'Marcos Vinícius', transportadora:'LogVale Cargas', tipoFrota:'spot', perfil:'bitruck', status:'bloqueado', capMin:7000, capMax:23000, upd:'há 3 h', diasParado:6, validadoEm:null},
+  {placa:'WER8G90', modelo:'Volvo VM 270', motorista:'Juliana Castro', transportadora:'Frota Própria', tipoFrota:'propria', perfil:'34leve', status:'livre', capMin:4000, capMax:15000, upd:'há 25 min', diasParado:0, validadoEm:null},
+  {placa:'ASD2H33', modelo:'Mercedes Atego', motorista:'Bruno Ferreira', transportadora:'Frota Própria', tipoFrota:'propria', perfil:'vuc', status:'viagem', capMin:3000, capMax:12000, upd:'há 6 min', diasParado:0, validadoEm:null},
+  {placa:'TYU6J78', modelo:'Scania G450', motorista:'Camila Duarte', transportadora:'Transnorte Log.', tipoFrota:'agregado', perfil:'toco', status:'pernoite', capMin:6000, capMax:21000, upd:'há 55 min', diasParado:3, validadoEm:null},
+  {placa:'IOP4K56', modelo:'Volvo FH 540', motorista:'Diego Santana', transportadora:'Frota Própria', tipoFrota:'propria', perfil:'truck', status:'livre', capMin:8000, capMax:24000, upd:'há 18 min', diasParado:0, validadoEm:null},
+  {placa:'LKJ9M23', modelo:'DAF CF', motorista:'Vanessa Lima', transportadora:'TransCarga Sul', tipoFrota:'spot', perfil:'34adapt', status:'manutencao', capMin:5000, capMax:17000, upd:'há 1 h', diasParado:5, validadoEm:null},
+  {placa:'HNV5L02', modelo:'Fiat Fiorino', motorista:'Rafael Souza', transportadora:'Frota Própria', tipoFrota:'propria', perfil:'van', status:'livre', capMin:500, capMax:650, upd:'há 30 min', diasParado:0, validadoEm:null},
 ];
 let fleet = JSON.parse(JSON.stringify(DEFAULT_FLEET));
 
@@ -1208,9 +1249,7 @@ function renderTable(){
 
   let lastPerfil = null;
   body.innerHTML = rows.map(v=>{
-    const tipo = v.tipoFrota === 'propria'
-      ? '<span class="badge b-viagem" style="background:var(--info-soft);color:var(--primary)"><span class="bdot" style="background:var(--primary)"></span>Própria</span>'
-      : '<span class="badge b-bloqueado"><span class="bdot"></span>Terceiros</span>';
+    const tipo = origemBadgeHTML(v.tipoFrota);
 
     let groupHeader = '';
     if(v.perfil !== lastPerfil){
@@ -1327,7 +1366,7 @@ function openDetailModal(placa){
     infoTile('Status Atual', `<span class="badge ${s.cls}"><span class="bdot"></span>${s.label}</span>`) +
     infoTile('Motorista', v.motorista) +
     infoTile('Transportadora', v.transportadora) +
-    infoTile('Tipo de Frota', v.tipoFrota === 'propria' ? 'Frota Própria' : 'Terceiros') +
+    infoTile('Origem', ORIGEM_LABELS[v.tipoFrota] || v.tipoFrota) +
     infoTile('Capacidade', v.capMin.toLocaleString('pt-BR') + ' – ' + v.capMax.toLocaleString('pt-BR') + ' kg') +
     infoTile('Dias no Status Atual', v.diasParado > 0 ? v.diasParado + ' dia(s)' : '—');
 
@@ -1482,17 +1521,29 @@ function statusPillsHTML(v){
       <i class="fa-solid ${v.status===key?'fa-circle-check':'fa-circle'}"></i> ${val.label}
     </button>`).join('');
 }
-function renderStatusView(){
+let statusViewMode = 'sheet';
+
+function filteredStatusRows(){
   const q = (document.getElementById('statusSearchInput').value || '').trim().toLowerCase();
-  let rows = fleet.filter(v=>{
+  return fleet.filter(v=>{
     if(!q) return true;
     return (v.placa+v.motorista+v.transportadora).toLowerCase().includes(q);
   }).slice().sort((a,b)=> perfilIndex(a.perfil) - perfilIndex(b.perfil));
+}
 
-  const today = dateLabel(0);
+function renderStatusView(){
+  const rows = filteredStatusRows();
   const updatedToday = fleet.filter(v=>v.upd === 'agora mesmo').length;
   document.getElementById('statusUpdCount').textContent = updatedToday;
 
+  document.getElementById('statusGroups').style.display = statusViewMode === 'cards' ? 'block' : 'none';
+  document.getElementById('statusSheetWrap').style.display = statusViewMode === 'sheet' ? 'block' : 'none';
+
+  if(statusViewMode === 'cards'){ renderStatusCards(rows); }
+  else { renderStatusSheet(rows); }
+}
+
+function renderStatusCards(rows){
   const container = document.getElementById('statusGroups');
   if(rows.length === 0){
     container.innerHTML = '<div class="insights-empty">Nenhum veículo encontrado.</div>';
@@ -1519,7 +1570,74 @@ function renderStatusView(){
   });
   container.innerHTML = html;
 }
+
+function sheetStatusSelectHTML(v){
+  const s = STATUS_MAP[v.status];
+  const opts = Object.entries(STATUS_MAP).map(([key,val])=>
+    `<option value="${key}" ${key===v.status?'selected':''}>${val.label}</option>`
+  ).join('');
+  return `<select class="sheet-status-select status-inline ${s.cls}" onchange="requireUnlock(()=>updateVehicleStatus('${v.placa}', this.value))">${opts}</select>`;
+}
+function renderStatusSheet(rows){
+  const wrap = document.getElementById('statusSheetWrap');
+  if(rows.length === 0){
+    wrap.innerHTML = '<div class="insights-empty">Nenhum veículo encontrado.</div>';
+    return;
+  }
+  const today = dateLabel(0);
+  let bodyHtml = '';
+  let lastPerfil = null;
+  let totalPeso = 0;
+  rows.forEach(v=>{
+    if(v.perfil !== lastPerfil){
+      lastPerfil = v.perfil;
+      const count = rows.filter(x=>x.perfil===v.perfil).length;
+      bodyHtml += `<tr class="sheet-group-row"><td colspan="8"><i class="fa-solid fa-layer-group"></i> ${PERFIL_LABELS[v.perfil]||'Sem perfil'} — ${count} veículo${count===1?'':'s'}</td></tr>`;
+    }
+    totalPeso += v.capMax;
+    const checked = v.validadoEm === today;
+    bodyHtml += `<tr>
+      <td>${v.motorista}</td>
+      <td>${v.transportadora}</td>
+      <td><span class="cell-plate">${v.placa}</span></td>
+      <td>${PERFIL_LABELS[v.perfil] || ''}</td>
+      <td style="text-align:right;">${v.capMax.toLocaleString('pt-BR')}</td>
+      <td>${ORIGEM_LABELS[v.tipoFrota] || v.tipoFrota}</td>
+      <td class="center"><input type="checkbox" class="sheet-check" ${checked?'checked':''} onchange="requireUnlock(()=>toggleValidacao('${v.placa}', this.checked))"></td>
+      <td>${sheetStatusSelectHTML(v)}</td>
+    </tr>`;
+  });
+  wrap.innerHTML = `
+    <div class="sheet-table-wrap">
+      <div class="sheet-scroll">
+        <table class="sheet-table">
+          <thead><tr>
+            <th>Motorista</th><th>Transportadora</th><th>Placa</th><th>Perfil</th>
+            <th style="text-align:right;">Peso Máx (kg)</th><th>Origem</th><th class="center">Validação</th><th>Status</th>
+          </tr></thead>
+          <tbody>${bodyHtml}</tbody>
+        </table>
+      </div>
+      <div class="sheet-foot"><span class="sheet-total">Total: ${totalPeso.toLocaleString('pt-BR')} kg</span></div>
+    </div>`;
+}
+function toggleValidacao(placa, checked){
+  const v = fleet.find(x=>x.placa===placa);
+  if(!v) return;
+  v.validadoEm = checked ? dateLabel(0) : null;
+  saveToStorage();
+  pushToSheets(true);
+  showToast(checked ? 'Veículo ' + placa + ' validado.' : 'Validação removida de ' + placa + '.', 'success', checked ? 'fa-square-check' : 'fa-square');
+}
 document.getElementById('statusSearchInput').addEventListener('input', renderStatusView);
+document.getElementById('statusViewToggle').addEventListener('click', e=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  document.querySelectorAll('#statusViewToggle button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  statusViewMode = btn.dataset.mode;
+  renderStatusView();
+});
 
 /* ==========================================================================
    VIEW: MOTORISTAS (derivado dos veículos cadastrados)
@@ -1562,7 +1680,8 @@ function renderTransportadorasView(){
     const list = map[name];
     const livres = list.filter(v=>v.status==='livre').length;
     const indisponiveis = list.filter(v=>['pernoite','manutencao','bloqueado'].includes(v.status)).length;
-    const tipo = list.every(v=>v.tipoFrota==='propria') ? 'Frota Própria' : list.every(v=>v.tipoFrota==='terceiros') ? 'Terceiros' : 'Mista';
+    const tipos = new Set(list.map(v=>v.tipoFrota));
+    const tipo = tipos.size === 1 ? ORIGEM_LABELS[[...tipos][0]] : 'Mista';
     return `<div class="insight-card info">
       <div class="insight-ic"><i class="fa-solid fa-building"></i></div>
       <div style="flex:1;">
@@ -1964,7 +2083,7 @@ function saveVehicle(){
     if(v.modelo !== modelo) changes.push('modelo');
     if(v.motorista !== motorista) changes.push('motorista');
     if(v.transportadora !== transportadora) changes.push('transportadora');
-    if(v.tipoFrota !== tipoFrota) changes.push('tipo de frota');
+    if(v.tipoFrota !== tipoFrota) changes.push('origem');
     if(v.perfil !== perfil) changes.push('perfil');
     if(v.capMin !== capMin || v.capMax !== capMax) changes.push('capacidade');
     const placaMudou = v.placa !== placa;
@@ -1980,7 +2099,7 @@ function saveVehicle(){
     }
     showToast('Veículo atualizado com sucesso.', 'success', 'fa-circle-check');
   } else {
-    fleet.unshift({placa,modelo,motorista,transportadora,tipoFrota,perfil,status:'livre',capMin,capMax,upd:'agora mesmo', diasParado:0});
+    fleet.unshift({placa,modelo,motorista,transportadora,tipoFrota,perfil,status:'livre',capMin,capMax,upd:'agora mesmo', diasParado:0, validadoEm:null});
     logVehicleEvent(placa, 'criado', 'Veículo cadastrado na frota.');
     showToast('Veículo cadastrado com sucesso.', 'success', 'fa-circle-check');
   }
@@ -2040,11 +2159,11 @@ function exportData(){
     const hay = (v.placa+v.modelo+v.motorista+v.transportadora).toLowerCase();
     return hay.includes(query);
   }).sort((a,b)=> perfilIndex(a.perfil) - perfilIndex(b.perfil));
-  const header = ['Perfil','Placa','Modelo','Motorista','Transportadora','Tipo de Frota','Status','Peso Minimo (kg)','Peso Maximo (kg)','Dias Parado','Ultima Atualizacao'];
+  const header = ['Perfil','Placa','Modelo','Motorista','Transportadora','Origem','Status','Peso Minimo (kg)','Peso Maximo (kg)','Validado Hoje','Dias Parado','Ultima Atualizacao'];
   const lines = rows.map(v=>[
     PERFIL_LABELS[v.perfil] || '', v.placa, v.modelo, v.motorista, v.transportadora,
-    v.tipoFrota === 'propria' ? 'Frota Propria' : 'Terceiros',
-    STATUS_MAP[v.status].label, v.capMin, v.capMax, v.diasParado, v.upd
+    ORIGEM_LABELS[v.tipoFrota] || v.tipoFrota,
+    STATUS_MAP[v.status].label, v.capMin, v.capMax, v.validadoEm === dateLabel(0) ? 'Sim' : 'Não', v.diasParado, v.upd
   ].map(f=>`"${String(f).replace(/"/g,'""')}"`).join(';'));
   const csv = '\uFEFF' + header.join(';') + '\n' + lines.join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
@@ -2130,7 +2249,7 @@ function importBackupJSON(file){
    os dados mais recentes da planilha antes de renderizar.
    ========================================================================== */
 const SHEETS_URL_KEY = 'logtrack_sheets_url';
-const SHEETS_FIELDS = ['placa','modelo','motorista','transportadora','tipoFrota','perfil','status','capMin','capMax','diasParado','upd'];
+const SHEETS_FIELDS = ['placa','modelo','motorista','transportadora','tipoFrota','perfil','status','capMin','capMax','diasParado','upd','validadoEm'];
 let sheetsUrl = localStorage.getItem(SHEETS_URL_KEY) || '';
 let sheetsConnected = false;
 
@@ -2152,7 +2271,7 @@ const APPS_SCRIPT_CODE = `function doGet(e) {
 function doPost(e) {
   var payload = JSON.parse(e.postData.contents);
   var sheet = getFrotaSheet();
-  var headers = ['placa','modelo','motorista','transportadora','tipoFrota','perfil','status','capMin','capMax','diasParado','upd'];
+  var headers = ['placa','modelo','motorista','transportadora','tipoFrota','perfil','status','capMin','capMax','diasParado','upd','validadoEm'];
 
   if (payload.action === 'replaceAll') {
     sheet.clearContents();
@@ -2173,17 +2292,17 @@ function getFrotaSheet(){
   var sheet = ss.getSheetByName('Frota');
   if (!sheet) {
     sheet = ss.insertSheet('Frota');
-    var headers = ['placa','modelo','motorista','transportadora','tipoFrota','perfil','status','capMin','capMax','diasParado','upd'];
+    var headers = ['placa','modelo','motorista','transportadora','tipoFrota','perfil','status','capMin','capMax','diasParado','upd','validadoEm'];
     sheet.appendRow(headers);
     sheet.setFrozenRows(1);
     sheet.setColumnWidths(1, headers.length, 130);
 
     var maxRows = 1000;
 
-    // Coluna E (5) = Tipo de Frota — lista suspensa
+    // Coluna E (5) = Origem — lista suspensa
     var tipoRange = sheet.getRange(2, 5, maxRows - 1, 1);
     tipoRange.setDataValidation(
-      SpreadsheetApp.newDataValidation().requireValueInList(['propria','terceiros'], true).setAllowInvalid(true).build()
+      SpreadsheetApp.newDataValidation().requireValueInList(['propria','agregado','spot'], true).setAllowInvalid(true).build()
     );
 
     // Coluna F (6) = Perfil do Veículo — lista suspensa
@@ -2286,13 +2405,14 @@ function normalizeSheetRow(row){
     modelo: row.modelo || '',
     motorista: row.motorista || '',
     transportadora: row.transportadora || '',
-    tipoFrota: row.tipoFrota === 'terceiros' ? 'terceiros' : 'propria',
+    tipoFrota: ORIGEM_ORDER.includes(row.tipoFrota) ? row.tipoFrota : 'propria',
     perfil: PERFIL_ORDER.includes(row.perfil) ? row.perfil : 'van',
     status: STATUS_MAP[row.status] ? row.status : 'livre',
     capMin: parseInt(row.capMin) || 0,
     capMax: parseInt(row.capMax) || 0,
     diasParado: parseInt(row.diasParado) || 0,
     upd: row.upd || 'sincronizado',
+    validadoEm: row.validadoEm || null,
   };
 }
 
@@ -2510,10 +2630,12 @@ function splitCard(label, icon, color, s){
 }
 function renderFleetSplit(){
   const p = subsetStats('propria');
-  const t = subsetStats('terceiros');
+  const a = subsetStats('agregado');
+  const s = subsetStats('spot');
   document.getElementById('splitGrid').innerHTML =
     splitCard('Frota Própria', 'fa-building-shield', '#0F5E73', p) +
-    splitCard('Terceiros', 'fa-handshake', '#6C7A89', t);
+    splitCard('Agregados', 'fa-handshake', '#6C7A89', a) +
+    splitCard('Spot', 'fa-bolt', '#96760A', s);
 }
 
 function chartColors(){
