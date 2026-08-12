@@ -498,6 +498,14 @@ tbody tr:last-child td{border-bottom:none;}
 .sheet-foot{display:flex;justify-content:flex-end;padding:14px 18px;background:var(--warning-soft);border-top:2px solid var(--warning);}
 .sheet-foot .sheet-total{font-size:15px;font-weight:800;color:#7A5D00;}
 .sheet-scroll{overflow-x:auto;}
+.status-page-wrap{max-width:960px;margin:0 auto;}
+#statusSearchWrap{margin-bottom:18px;max-width:100%;}
+.sheet-table thead th{text-align:center;}
+.sheet-table thead th:nth-child(1),.sheet-table thead th:nth-child(2){text-align:left;}
+.sheet-table tbody td{text-align:center;}
+.sheet-table tbody td:nth-child(1),.sheet-table tbody td:nth-child(2){text-align:left;}
+.sheet-table tbody td:nth-child(6){text-align:left;}
+.status-check-group{justify-content:center;}
 
 /* Grupo de checkboxes de status (clique direto, sem abrir menu) */
 .status-check-group{display:flex;flex-wrap:wrap;gap:5px 9px;align-items:center;}
@@ -941,27 +949,19 @@ tbody tr:last-child td{border-bottom:none;}
 
     <!-- ===================== VIEW: ATUALIZAÇÃO DE STATUS ===================== -->
     <div id="view-status" class="view" style="display:none;">
-      <div class="page-head fade-in">
-        <div>
-          <h1>Atualização de Status</h1>
-          <p>Marque o status atual de cada veículo — agrupado por perfil</p>
+      <div class="status-page-wrap">
+        <div class="page-head fade-in" style="margin-bottom:18px;">
+          <div>
+            <h1>Atualização de Status</h1>
+            <p>Marque o status atual de cada veículo</p>
+          </div>
         </div>
-        <div class="head-actions">
-          <span class="sync-pill"><span class="sync-dot"></span> <span id="statusUpdCount">0</span> atualizados hoje</span>
-        </div>
-      </div>
-      <div class="filter-tabs" id="statusPageSearch" style="padding:0 0 14px;justify-content:space-between;flex-wrap:wrap;gap:14px;">
-        <div class="search-wrap" style="max-width:420px;height:44px;">
+        <div class="search-wrap" id="statusSearchWrap">
           <i class="fa-solid fa-magnifying-glass"></i>
           <input id="statusSearchInput" type="text" placeholder="Buscar por placa, motorista ou transportadora...">
         </div>
-        <div class="chip-toggle" id="statusViewToggle">
-          <button data-mode="cards">Cartões</button>
-          <button class="active" data-mode="sheet">Planilha</button>
-        </div>
+        <div id="statusSheetWrap"></div>
       </div>
-      <div id="statusGroups" style="display:none;"></div>
-      <div id="statusSheetWrap"></div>
     </div><!-- /view-status -->
 
     <!-- ===================== VIEW: MOTORISTAS ===================== -->
@@ -1531,15 +1531,6 @@ async function changeMasterKey(){
 /* ==========================================================================
    VIEW: ATUALIZAÇÃO DE STATUS (checkboxes visuais por veículo)
    ========================================================================== */
-function statusPillsHTML(v){
-  return Object.entries(STATUS_MAP).map(([key,val])=>`
-    <button type="button" class="status-pill ${val.cls} ${v.status===key?'active':''}"
-      onclick="requireUnlock(()=>updateVehicleStatus('${v.placa}', '${key}'))">
-      <i class="fa-solid ${v.status===key?'fa-circle-check':'fa-circle'}"></i> ${val.label}
-    </button>`).join('');
-}
-let statusViewMode = 'sheet';
-
 function filteredStatusRows(){
   const q = (document.getElementById('statusSearchInput').value || '').trim().toLowerCase();
   return fleet.filter(v=>{
@@ -1549,43 +1540,7 @@ function filteredStatusRows(){
 }
 
 function renderStatusView(){
-  const rows = filteredStatusRows();
-  const updatedToday = fleet.filter(v=>v.upd === 'agora mesmo').length;
-  document.getElementById('statusUpdCount').textContent = updatedToday;
-
-  document.getElementById('statusGroups').style.display = statusViewMode === 'cards' ? 'block' : 'none';
-  document.getElementById('statusSheetWrap').style.display = statusViewMode === 'sheet' ? 'block' : 'none';
-
-  if(statusViewMode === 'cards'){ renderStatusCards(rows); }
-  else { renderStatusSheet(rows); }
-}
-
-function renderStatusCards(rows){
-  const container = document.getElementById('statusGroups');
-  if(rows.length === 0){
-    container.innerHTML = '<div class="insights-empty">Nenhum veículo encontrado.</div>';
-    return;
-  }
-  let html = '';
-  let lastPerfil = null;
-  rows.forEach(v=>{
-    if(v.perfil !== lastPerfil){
-      lastPerfil = v.perfil;
-      const count = rows.filter(x=>x.perfil===v.perfil).length;
-      html += `<div class="status-group-title"><i class="fa-solid fa-layer-group"></i> ${PERFIL_LABELS[v.perfil]||'Sem perfil'} <span class="group-count">${count} veículo${count===1?'':'s'}</span></div>`;
-    }
-    html += `<div class="status-row">
-      <div class="status-row-info">
-        <div class="cell-plate">${v.placa}</div>
-        <div class="status-row-meta">
-          <span><i class="fa-regular fa-id-card"></i> ${v.motorista}</span>
-          <span><i class="fa-solid fa-building"></i> ${v.transportadora}</span>
-        </div>
-      </div>
-      <div class="status-pill-group">${statusPillsHTML(v)}</div>
-    </div>`;
-  });
-  container.innerHTML = html;
+  renderStatusSheet(filteredStatusRows());
 }
 
 function statusChecksHTML(v){
@@ -1610,22 +1565,18 @@ function renderStatusSheet(rows){
   const today = dateLabel(0);
   let bodyHtml = '';
   let lastPerfil = null;
-  let totalPeso = 0;
   rows.forEach(v=>{
     if(v.perfil !== lastPerfil){
       lastPerfil = v.perfil;
       const count = rows.filter(x=>x.perfil===v.perfil).length;
-      bodyHtml += `<tr class="sheet-group-row"><td colspan="8"><i class="fa-solid fa-layer-group"></i> ${PERFIL_LABELS[v.perfil]||'Sem perfil'} — ${count} veículo${count===1?'':'s'}</td></tr>`;
+      bodyHtml += `<tr class="sheet-group-row"><td colspan="6"><i class="fa-solid fa-layer-group"></i> ${PERFIL_LABELS[v.perfil]||'Sem perfil'} — ${count} veículo${count===1?'':'s'}</td></tr>`;
     }
-    totalPeso += v.capMax;
     const checked = v.validadoEm === today;
     bodyHtml += `<tr>
       <td>${v.motorista}</td>
       <td>${v.transportadora}</td>
       <td><span class="cell-plate">${v.placa}</span></td>
       <td>${PERFIL_LABELS[v.perfil] || ''}</td>
-      <td style="text-align:right;">${v.capMax.toLocaleString('pt-BR')}</td>
-      <td>${ORIGEM_LABELS[v.tipoFrota] || v.tipoFrota}</td>
       <td class="center"><input type="checkbox" class="sheet-check" ${checked?'checked':''} onchange="requireUnlock(()=>toggleValidacao('${v.placa}', this.checked))"></td>
       <td>${statusChecksHTML(v)}</td>
     </tr>`;
@@ -1636,12 +1587,11 @@ function renderStatusSheet(rows){
         <table class="sheet-table">
           <thead><tr>
             <th>Motorista</th><th>Transportadora</th><th>Placa</th><th>Perfil</th>
-            <th style="text-align:right;">Peso Máx (kg)</th><th>Origem</th><th class="center">Validação</th><th style="min-width:340px;">Status</th>
+            <th class="center">Validação</th><th style="min-width:340px;">Status</th>
           </tr></thead>
           <tbody>${bodyHtml}</tbody>
         </table>
       </div>
-      <div class="sheet-foot"><span class="sheet-total">Total: ${totalPeso.toLocaleString('pt-BR')} kg</span></div>
     </div>`;
 }
 function toggleValidacao(placa, checked){
@@ -1653,14 +1603,6 @@ function toggleValidacao(placa, checked){
   showToast(checked ? 'Veículo ' + placa + ' validado.' : 'Validação removida de ' + placa + '.', 'success', checked ? 'fa-square-check' : 'fa-square');
 }
 document.getElementById('statusSearchInput').addEventListener('input', renderStatusView);
-document.getElementById('statusViewToggle').addEventListener('click', e=>{
-  const btn = e.target.closest('button');
-  if(!btn) return;
-  document.querySelectorAll('#statusViewToggle button').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  statusViewMode = btn.dataset.mode;
-  renderStatusView();
-});
 
 /* ==========================================================================
    VIEW: MOTORISTAS (derivado dos veículos cadastrados)
