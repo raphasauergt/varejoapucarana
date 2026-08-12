@@ -485,8 +485,8 @@ tbody tr:last-child td{border-bottom:none;}
 }
 .sheet-table thead th.center{text-align:center;}
 .sheet-table tbody td{padding:9px 14px;border-bottom:1px solid var(--border);white-space:nowrap;}
-.sheet-table tbody tr:nth-child(even){background:var(--bg);}
-.sheet-table tbody tr:hover{background:var(--info-soft);}
+.sheet-table tbody td:nth-child(7){white-space:normal;}
+.sheet-table tbody tr:hover{filter:brightness(0.97);}
 .sheet-table .sheet-group-row td{
   background:var(--gray-soft) !important;font-weight:700;text-transform:uppercase;font-size:11px;letter-spacing:.5px;
   color:var(--text-soft);padding:8px 14px;
@@ -504,8 +504,25 @@ tbody tr:last-child td{border-bottom:none;}
 .sheet-table thead th:nth-child(1),.sheet-table thead th:nth-child(2){text-align:left;}
 .sheet-table tbody td{text-align:center;}
 .sheet-table tbody td:nth-child(1),.sheet-table tbody td:nth-child(2){text-align:left;}
-.sheet-table tbody td:nth-child(6){text-align:left;}
-.status-check-group{justify-content:center;}
+.sheet-table tbody td:nth-child(7){text-align:left;}
+.status-check-group{justify-content:center;max-width:230px;}
+.avail-row{border-left:5px solid transparent;}
+.avail-row td:first-child{border-left:none;}
+.avail-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:20px;font-size:11px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.3px;
+}
+.avail-badge.yes{background:var(--success-soft);color:#1E8E3E;}
+.avail-badge.no{background:var(--danger-soft);color:#C0293B;}
+.avail-summary{display:flex;justify-content:center;gap:14px;margin-bottom:16px;}
+.avail-summary-card{
+  display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:12px 20px;box-shadow:var(--shadow-sm);
+}
+.avail-summary-card .dot{width:12px;height:12px;border-radius:50%;}
+.avail-summary-card .num{font-size:19px;font-weight:800;}
+.avail-summary-card .lbl{font-size:11.5px;color:var(--text-soft);font-weight:600;}
+.avail-filter-row{display:flex;justify-content:center;margin-bottom:16px;}
 
 /* Grupo de checkboxes de status (clique direto, sem abrir menu) */
 .status-check-group{display:flex;flex-wrap:wrap;gap:5px 9px;align-items:center;}
@@ -954,6 +971,14 @@ tbody tr:last-child td{border-bottom:none;}
           <div>
             <h1>Atualização de Status</h1>
             <p>Marque o status atual de cada veículo</p>
+          </div>
+        </div>
+        <div class="avail-summary" id="availSummary"></div>
+        <div class="avail-filter-row">
+          <div class="chip-toggle" id="availFilter">
+            <button class="active" data-avail="todos">Todos</button>
+            <button data-avail="disponivel">Disponíveis</button>
+            <button data-avail="indisponivel">Indisponíveis</button>
           </div>
         </div>
         <div class="search-wrap" id="statusSearchWrap">
@@ -1534,12 +1559,24 @@ async function changeMasterKey(){
 function filteredStatusRows(){
   const q = (document.getElementById('statusSearchInput').value || '').trim().toLowerCase();
   return fleet.filter(v=>{
+    if(statusAvailFilter === 'disponivel' && v.status !== 'livre') return false;
+    if(statusAvailFilter === 'indisponivel' && v.status === 'livre') return false;
     if(!q) return true;
     return (v.placa+v.motorista+v.transportadora).toLowerCase().includes(q);
   }).slice().sort((a,b)=> perfilIndex(a.perfil) - perfilIndex(b.perfil));
 }
+let statusAvailFilter = 'todos';
+
+function renderAvailSummary(){
+  const disponiveis = fleet.filter(v=>v.status==='livre').length;
+  const indisponiveis = fleet.length - disponiveis;
+  document.getElementById('availSummary').innerHTML =
+    `<div class="avail-summary-card"><span class="dot" style="background:var(--success)"></span><span class="num">${disponiveis}</span><span class="lbl">Disponíveis</span></div>
+     <div class="avail-summary-card"><span class="dot" style="background:var(--danger)"></span><span class="num">${indisponiveis}</span><span class="lbl">Indisponíveis</span></div>`;
+}
 
 function renderStatusView(){
+  renderAvailSummary();
   renderStatusSheet(filteredStatusRows());
 }
 
@@ -1556,6 +1593,9 @@ function handleStatusCheck(ev, placa, key){
   requireUnlock(()=>updateVehicleStatus(placa, key));
   return false;
 }
+const ROW_TINT = {livre:'#F0FAF3', pernoite:'#FDF1F2', manutencao:'#FFFBF0', viagem:'#EFF9FC', reserva:'#F8F4FD', bloqueado:'#F4F5F7'};
+const ROW_BORDER = {livre:'#28A745', pernoite:'#DC3545', manutencao:'#FFC107', viagem:'#17A2B8', reserva:'#8A5FC7', bloqueado:'#6C7A89'};
+
 function renderStatusSheet(rows){
   const wrap = document.getElementById('statusSheetWrap');
   if(rows.length === 0){
@@ -1569,14 +1609,16 @@ function renderStatusSheet(rows){
     if(v.perfil !== lastPerfil){
       lastPerfil = v.perfil;
       const count = rows.filter(x=>x.perfil===v.perfil).length;
-      bodyHtml += `<tr class="sheet-group-row"><td colspan="6"><i class="fa-solid fa-layer-group"></i> ${PERFIL_LABELS[v.perfil]||'Sem perfil'} — ${count} veículo${count===1?'':'s'}</td></tr>`;
+      bodyHtml += `<tr class="sheet-group-row"><td colspan="7"><i class="fa-solid fa-layer-group"></i> ${PERFIL_LABELS[v.perfil]||'Sem perfil'} — ${count} veículo${count===1?'':'s'}</td></tr>`;
     }
     const checked = v.validadoEm === today;
-    bodyHtml += `<tr>
+    const disponivel = v.status === 'livre';
+    bodyHtml += `<tr class="avail-row" style="background:${ROW_TINT[v.status]};border-left-color:${ROW_BORDER[v.status]};">
       <td>${v.motorista}</td>
       <td>${v.transportadora}</td>
       <td><span class="cell-plate">${v.placa}</span></td>
       <td>${PERFIL_LABELS[v.perfil] || ''}</td>
+      <td><span class="avail-badge ${disponivel?'yes':'no'}"><i class="fa-solid ${disponivel?'fa-check':'fa-xmark'}"></i> ${disponivel?'Disponível':'Indisponível'}</span></td>
       <td class="center"><input type="checkbox" class="sheet-check" ${checked?'checked':''} onchange="requireUnlock(()=>toggleValidacao('${v.placa}', this.checked))"></td>
       <td>${statusChecksHTML(v)}</td>
     </tr>`;
@@ -1587,7 +1629,7 @@ function renderStatusSheet(rows){
         <table class="sheet-table">
           <thead><tr>
             <th>Motorista</th><th>Transportadora</th><th>Placa</th><th>Perfil</th>
-            <th class="center">Validação</th><th style="min-width:340px;">Status</th>
+            <th>Disponibilidade</th><th class="center">Validação</th><th>Status</th>
           </tr></thead>
           <tbody>${bodyHtml}</tbody>
         </table>
@@ -1603,6 +1645,14 @@ function toggleValidacao(placa, checked){
   showToast(checked ? 'Veículo ' + placa + ' validado.' : 'Validação removida de ' + placa + '.', 'success', checked ? 'fa-square-check' : 'fa-square');
 }
 document.getElementById('statusSearchInput').addEventListener('input', renderStatusView);
+document.getElementById('availFilter').addEventListener('click', e=>{
+  const btn = e.target.closest('button');
+  if(!btn) return;
+  document.querySelectorAll('#availFilter button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  statusAvailFilter = btn.dataset.avail;
+  renderStatusView();
+});
 
 /* ==========================================================================
    VIEW: MOTORISTAS (derivado dos veículos cadastrados)
