@@ -540,9 +540,11 @@ tbody tr:last-child td{border-bottom:none;}
 .status-check.b-reserva{color:#6B41A8;}
 .status-check.b-bloqueado{color:#4A5568;}
 .table-foot{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;font-size:12.5px;color:var(--text-soft);}
-.pager{display:flex;gap:6px;}
-.pager button{width:30px;height:30px;border-radius:8px;background:var(--bg);font-weight:600;font-size:12.5px;}
+.pager{display:flex;gap:6px;align-items:center;}
+.pager button{width:30px;height:30px;border-radius:8px;background:var(--bg);font-weight:600;font-size:12.5px;transition:background .15s;}
+.pager button:hover:not(:disabled):not(.active){background:var(--gray-soft);}
 .pager button.active{background:var(--primary);color:#fff;}
+.pager button:disabled{opacity:.4;cursor:not-allowed;}
 
 /* Skeleton */
 .skeleton{background:linear-gradient(90deg,var(--gray-soft) 25%,var(--border) 37%,var(--gray-soft) 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite;border-radius:8px;}
@@ -954,12 +956,7 @@ tbody tr:last-child td{border-bottom:none;}
 
         <div class="table-foot">
           <span id="pageInfo">Mostrando 1–8 de 13</span>
-          <div class="pager">
-            <button><i class="fa-solid fa-chevron-left"></i></button>
-            <button class="active">1</button>
-            <button>2</button>
-            <button><i class="fa-solid fa-chevron-right"></i></button>
-          </div>
+          <div class="pager" id="fleetPager"></div>
         </div>
       </div>
     </div><!-- /view-veiculos -->
@@ -1259,6 +1256,9 @@ function statusSelectHTML(v){
   return `<select class="status-inline ${s.cls}" onchange="updateVehicleStatus('${v.placa}', this.value)">${opts}</select>`;
 }
 
+const FLEET_PAGE_SIZE = 8;
+let fleetCurrentPage = 1;
+
 function renderTable(){
   const body = document.getElementById('fleetTableBody');
   const query = document.getElementById('searchInput').value.trim().toLowerCase();
@@ -1279,7 +1279,17 @@ function renderTable(){
   rows = rows.slice().sort((a,b)=> perfilIndex(a.perfil) - perfilIndex(b.perfil));
 
   document.getElementById('resultCount').textContent = rows.length + ' veículo' + (rows.length===1?'':'s');
-  document.getElementById('pageInfo').textContent = 'Mostrando 1–' + Math.min(rows.length,8) + ' de ' + rows.length;
+
+  const totalPages = Math.max(1, Math.ceil(rows.length / FLEET_PAGE_SIZE));
+  if(fleetCurrentPage > totalPages) fleetCurrentPage = totalPages;
+  if(fleetCurrentPage < 1) fleetCurrentPage = 1;
+  const startIdx = (fleetCurrentPage - 1) * FLEET_PAGE_SIZE;
+  const pageRows = rows.slice(startIdx, startIdx + FLEET_PAGE_SIZE);
+
+  document.getElementById('pageInfo').textContent = rows.length === 0
+    ? 'Nenhum veículo encontrado'
+    : 'Mostrando ' + (startIdx + 1) + '–' + Math.min(startIdx + FLEET_PAGE_SIZE, rows.length) + ' de ' + rows.length;
+  renderFleetPager(totalPages);
 
   if(rows.length === 0){
     body.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:48px;color:var(--text-soft);">
@@ -1289,7 +1299,7 @@ function renderTable(){
   }
 
   let lastPerfil = null;
-  body.innerHTML = rows.map(v=>{
+  body.innerHTML = pageRows.map(v=>{
     const tipo = origemBadgeHTML(v.tipoFrota);
 
     let groupHeader = '';
@@ -1326,6 +1336,27 @@ function renderTable(){
   }).join('');
   document.getElementById('navBadgeVeiculos').textContent = fleet.length;
   document.getElementById('navBadgeManutencao').textContent = fleet.filter(v=>v.status==='manutencao').length;
+}
+
+function renderFleetPager(totalPages){
+  const pager = document.getElementById('fleetPager');
+  let html = `<button ${fleetCurrentPage<=1?'disabled':''} onclick="goToFleetPage(${fleetCurrentPage-1})"><i class="fa-solid fa-chevron-left"></i></button>`;
+  const maxButtons = 5;
+  let start = Math.max(1, fleetCurrentPage - Math.floor(maxButtons/2));
+  let end = Math.min(totalPages, start + maxButtons - 1);
+  start = Math.max(1, end - maxButtons + 1);
+  if(start > 1){ html += `<button onclick="goToFleetPage(1)">1</button>`; if(start > 2) html += `<span style="padding:0 4px;color:var(--text-soft);">…</span>`; }
+  for(let p = start; p <= end; p++){
+    html += `<button class="${p===fleetCurrentPage?'active':''}" onclick="goToFleetPage(${p})">${p}</button>`;
+  }
+  if(end < totalPages){ if(end < totalPages - 1) html += `<span style="padding:0 4px;color:var(--text-soft);">…</span>`; html += `<button onclick="goToFleetPage(${totalPages})">${totalPages}</button>`; }
+  html += `<button ${fleetCurrentPage>=totalPages?'disabled':''} onclick="goToFleetPage(${fleetCurrentPage+1})"><i class="fa-solid fa-chevron-right"></i></button>`;
+  pager.innerHTML = html;
+}
+function goToFleetPage(p){
+  fleetCurrentPage = p;
+  renderTable();
+  document.querySelector('.table-panel').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function updateVehicleStatus(placa, newStatus){
@@ -2016,6 +2047,7 @@ document.getElementById('filterTabs').addEventListener('click', e=>{
   document.querySelectorAll('#filterTabs .filter-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   currentFilter = btn.dataset.status;
+  fleetCurrentPage = 1;
   renderTable();
 });
 document.getElementById('tipoFilterTabs').addEventListener('click', e=>{
@@ -2024,13 +2056,15 @@ document.getElementById('tipoFilterTabs').addEventListener('click', e=>{
   document.querySelectorAll('#tipoFilterTabs .filter-tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   currentTipoFilter = btn.dataset.tipo;
+  fleetCurrentPage = 1;
   renderTable();
 });
 document.getElementById('searchInput').addEventListener('input', ()=>{
   if(document.getElementById('searchInput').value.trim()){ showView('veiculos'); document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active')); document.querySelector('.nav-item[data-tab="veiculos"]').classList.add('active'); }
+  fleetCurrentPage = 1;
   renderTable();
 });
-document.getElementById('searchType').addEventListener('change', renderTable);
+document.getElementById('searchType').addEventListener('change', ()=>{ fleetCurrentPage = 1; renderTable(); });
 
 /* ==========================================================================
    MODAL
@@ -2523,6 +2557,7 @@ function goToView(tab){
     const btn = document.querySelector('#filterTabs .filter-tab[data-status="manutencao"]');
     if(btn) btn.classList.add('active');
     currentFilter = 'manutencao';
+    fleetCurrentPage = 1;
     renderTable();
     return;
   }
