@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 /* ==========================================================================
    TOKENS
@@ -322,6 +323,19 @@ input,select{font-family:inherit;}
   background:#0E1D30;color:#B7E3D0;font-family:'SFMono-Regular',Consolas,monospace;font-size:11.5px;
   border-radius:10px;padding:14px;margin-top:10px;max-height:180px;overflow:auto;white-space:pre-wrap;word-break:break-all;
 }
+
+/* ---- IMPORTAR PLANILHA ---- */
+.import-dropzone{
+  border:2px dashed var(--border);border-radius:16px;padding:44px 24px;text-align:center;cursor:pointer;
+  transition:border-color .15s,background .15s;
+}
+.import-dropzone:hover,.import-dropzone.dragover{border-color:var(--secondary);background:var(--info-soft);}
+.import-dropzone i{font-size:30px;color:var(--secondary);margin-bottom:12px;display:block;}
+.import-dropzone p{font-size:14px;color:var(--text);margin-bottom:4px;}
+.import-dropzone span{font-size:12px;color:var(--text-soft);}
+.import-map-field{display:flex;flex-direction:column;gap:6px;}
+.import-map-field label{font-size:12px;font-weight:700;color:var(--text-soft);}
+.import-map-field select{height:40px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg);padding:0 12px;font-size:13px;}
 .kpi-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
 .kpi-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:15px;}
 .kpi-label{font-size:12px;color:var(--text-soft);font-weight:600;letter-spacing:.2px;}
@@ -888,6 +902,8 @@ tbody tr:last-child td{border-bottom:none;}
           <p>Cadastro e manutenção dos dados da frota</p>
         </div>
         <div class="head-actions">
+          <button class="btn btn-outline" onclick="requireUnlock(clearFleet)" title="Remove todos os veículos cadastrados"><i class="fa-regular fa-trash-can"></i> Limpar Frota</button>
+          <button class="btn btn-outline lock-gated" onclick="requireUnlock(openImportModal)"><i class="fa-solid fa-file-import"></i> Importar Planilha</button>
           <button class="btn btn-primary lock-gated" onclick="requireUnlock(openModal)"><i class="fa-solid fa-plus"></i> Novo Veículo</button>
         </div>
       </div>
@@ -1143,6 +1159,64 @@ tbody tr:last-child td{border-bottom:none;}
         <button class="btn btn-outline" onclick="testSheetsConnection()"><i class="fa-solid fa-plug"></i> Testar Conexão</button>
         <button class="btn btn-primary" onclick="saveSheetsUrl()"><i class="fa-solid fa-check"></i> Salvar e Conectar</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: IMPORTAR PLANILHA ===================== -->
+<div class="modal-overlay" id="importSheetModal">
+  <div class="modal" style="width:760px;">
+    <div class="modal-head">
+      <div>
+        <h3>Importar Planilha de Veículos</h3>
+        <p>Traga sua planilha atual (.xlsx, .xls ou .csv) direto para o painel</p>
+      </div>
+      <button class="modal-close" onclick="closeImportModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <!-- ETAPA 1: escolher arquivo -->
+    <div id="importStep1" class="modal-body" style="grid-template-columns:1fr;">
+      <div class="import-dropzone" id="importDropzone" onclick="document.getElementById('importSheetFile').click()">
+        <i class="fa-solid fa-file-arrow-up"></i>
+        <p><b>Clique para escolher o arquivo</b> ou arraste aqui</p>
+        <span>.xlsx, .xls ou .csv</span>
+        <input type="file" id="importSheetFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(this.files[0])">
+      </div>
+      <p class="settings-note" style="margin-top:14px;">
+        Dica: a primeira linha da planilha deve conter os nomes das colunas (ex: Placa, Motorista, Transportadora...).
+        Não precisa ter todas as colunas — no próximo passo você confirma o que for encontrado.
+      </p>
+    </div>
+
+    <!-- ETAPA 2: mapear colunas -->
+    <div id="importStep2" class="modal-body" style="grid-template-columns:1fr;display:none;">
+      <p style="font-size:12.5px;color:var(--text-soft);margin-bottom:4px;">
+        Encontramos <b id="importRowCount">0</b> linha(s) em <b id="importFileName">arquivo</b>. Confirme qual coluna da sua planilha corresponde a cada campo:
+      </p>
+      <div class="detail-info-grid" id="importMappingGrid" style="grid-template-columns:1fr 1fr;margin-top:10px;"></div>
+
+      <p style="font-size:12px;font-weight:700;color:var(--text-soft);margin:18px 0 8px;">Pré-visualização (primeiras linhas)</p>
+      <div class="sheet-table-wrap">
+        <div class="sheet-scroll" style="max-height:220px;">
+          <table class="sheet-table" id="importPreviewTable"></table>
+        </div>
+      </div>
+
+      <div class="field full" style="margin-top:16px;">
+        <label>O que fazer com os veículos importados?</label>
+        <select id="importMode">
+          <option value="merge">Adicionar/atualizar (mantém quem já existe, atualiza por placa)</option>
+          <option value="replace">Substituir toda a frota atual pelos dados da planilha</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-foot" id="importFoot1">
+      <button class="btn btn-outline" onclick="closeImportModal()">Cancelar</button>
+    </div>
+    <div class="modal-foot" id="importFoot2" style="display:none;">
+      <button class="btn btn-outline" onclick="backToImportStep1()">Voltar</button>
+      <button class="btn btn-primary" onclick="confirmImport()"><i class="fa-solid fa-check"></i> Confirmar Importação</button>
     </div>
   </div>
 </div>
@@ -2103,6 +2177,23 @@ function removeVehicle(placa){
   pushToSheets(true);
   showToast('Veículo removido da frota.', 'info', 'fa-trash-can');
 }
+function clearFleet(){
+  if(fleet.length === 0){ showToast('A frota já está vazia.', 'info', 'fa-circle-info'); return; }
+  const ok = confirm(
+    'Isso vai remover TODOS os ' + fleet.length + ' veículos cadastrados agora.\n\n' +
+    'Não é possível desfazer — mas se você já exportou um backup (.json) antes, dá para restaurar por lá.\n\n' +
+    'Deseja continuar?'
+  );
+  if(!ok) return;
+  fleet = [];
+  fleetCurrentPage = 1;
+  renderTable();
+  refreshAnalytics();
+  saveToStorage();
+  pushToSheets(true);
+  closeDetailModal();
+  showToast('Frota limpa. Pronto para importar seus dados reais.', 'success', 'fa-broom');
+}
 function saveVehicle(){
   const placa = document.getElementById('fPlaca').value.trim().toUpperCase();
   const modelo = document.getElementById('fModelo').value.trim();
@@ -2222,6 +2313,195 @@ function exportData(){
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
   showToast('Relatório CSV exportado com sucesso.', 'success', 'fa-file-export');
+}
+
+/* ==========================================================================
+   IMPORTAR PLANILHA (.xlsx/.xls/.csv) — traz a planilha manual do usuário
+   direto para a frota, com mapeamento de colunas e preview antes de confirmar.
+   ========================================================================== */
+const IMPORT_FIELDS = [
+  {key:'placa', label:'Placa', required:true, synonyms:['placa']},
+  {key:'motorista', label:'Motorista', required:true, synonyms:['motorista','condutor']},
+  {key:'transportadora', label:'Transportadora', required:false, synonyms:['transportadora','transp','transportador']},
+  {key:'modelo', label:'Modelo do Veículo', required:false, synonyms:['modelo','veiculo']},
+  {key:'perfil', label:'Perfil do Veículo', required:false, synonyms:['perfil']},
+  {key:'tipoFrota', label:'Origem', required:false, synonyms:['origem','tipodefrota','tipofrota']},
+  {key:'capMin', label:'Peso Mínimo (kg)', required:false, synonyms:['pesominimo','pesomin']},
+  {key:'capMax', label:'Peso Máximo (kg)', required:false, synonyms:['pesomaximo','pesomax','capacidademaxima','capacidade']},
+  {key:'status', label:'Status', required:false, synonyms:['status','situacao']},
+];
+let importParsedRows = [];
+let importHeaders = [];
+let importMapping = {};
+
+function normalizeHeader(s){
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+}
+function escapeAttr(s){ return String(s).replace(/"/g,'&quot;'); }
+
+function openImportModal(){
+  importParsedRows = []; importHeaders = []; importMapping = {};
+  document.getElementById('importSheetFile').value = '';
+  backToImportStep1();
+  document.getElementById('importSheetModal').classList.add('open');
+}
+function closeImportModal(){
+  document.getElementById('importSheetModal').classList.remove('open');
+}
+function backToImportStep1(){
+  document.getElementById('importStep1').style.display = 'grid';
+  document.getElementById('importStep2').style.display = 'none';
+  document.getElementById('importFoot1').style.display = 'flex';
+  document.getElementById('importFoot2').style.display = 'none';
+}
+function showImportStep2(){
+  document.getElementById('importStep1').style.display = 'none';
+  document.getElementById('importStep2').style.display = 'grid';
+  document.getElementById('importFoot1').style.display = 'none';
+  document.getElementById('importFoot2').style.display = 'flex';
+}
+document.getElementById('importSheetModal').addEventListener('click', e=>{
+  if(e.target.id === 'importSheetModal') closeImportModal();
+});
+
+function handleImportFile(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(ws, {defval:''});
+      if(json.length === 0){ showToast('Não encontramos dados nessa planilha.', 'info', 'fa-circle-exclamation'); return; }
+      importHeaders = Object.keys(json[0]);
+      importParsedRows = json;
+      document.getElementById('importFileName').textContent = file.name;
+      document.getElementById('importRowCount').textContent = json.length;
+      autoDetectMapping();
+      renderImportMappingUI();
+      renderImportPreview();
+      showImportStep2();
+    }catch(err){
+      console.error(err);
+      showToast('Não foi possível ler esse arquivo. Confira se é .xlsx, .xls ou .csv válido.', 'info', 'fa-circle-exclamation');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+const importDz = document.getElementById('importDropzone');
+importDz.addEventListener('dragover', e=>{ e.preventDefault(); importDz.classList.add('dragover'); });
+importDz.addEventListener('dragleave', ()=> importDz.classList.remove('dragover'));
+importDz.addEventListener('drop', e=>{
+  e.preventDefault(); importDz.classList.remove('dragover');
+  if(e.dataTransfer.files[0]) handleImportFile(e.dataTransfer.files[0]);
+});
+
+function autoDetectMapping(){
+  importMapping = {};
+  IMPORT_FIELDS.forEach(f=>{
+    const found = importHeaders.find(h => f.synonyms.includes(normalizeHeader(h)));
+    importMapping[f.key] = found || '';
+  });
+}
+function renderImportMappingUI(){
+  document.getElementById('importMappingGrid').innerHTML = IMPORT_FIELDS.map(f=>{
+    const opts = ['<option value="">— não importar —</option>'].concat(
+      importHeaders.map(h=>`<option value="${escapeAttr(h)}" ${importMapping[f.key]===h?'selected':''}>${h}</option>`)
+    ).join('');
+    return `<div class="import-map-field">
+      <label>${f.label}${f.required?' *':''}</label>
+      <select onchange="importMapping['${f.key}']=this.value; renderImportPreview();">${opts}</select>
+    </div>`;
+  }).join('');
+}
+function renderImportPreview(){
+  const table = document.getElementById('importPreviewTable');
+  const cols = IMPORT_FIELDS.filter(f=>importMapping[f.key]);
+  if(cols.length === 0){ table.innerHTML = '<tr><td style="padding:16px;color:var(--text-soft);">Nenhuma coluna mapeada ainda.</td></tr>'; return; }
+  const rows = importParsedRows.slice(0,5);
+  table.innerHTML =
+    '<thead><tr>' + cols.map(f=>`<th>${f.label}</th>`).join('') + '</tr></thead>' +
+    '<tbody>' + rows.map(r=>'<tr>' + cols.map(f=>`<td>${r[importMapping[f.key]] ?? ''}</td>`).join('') + '</tr>').join('') + '</tbody>';
+}
+
+function matchPerfil(text){
+  const n = normalizeHeader(text);
+  if(PERFIL_ORDER.includes(n)) return n;
+  if(n.includes('bitruck')) return 'bitruck';
+  if(n.includes('truck')) return 'truck';
+  if(n.includes('toco')) return 'toco';
+  if(n.includes('adapt')) return '34adapt';
+  if(n.includes('leve')) return '34leve';
+  if(n.includes('vuc')) return 'vuc';
+  if(n.includes('van')) return 'van';
+  return 'van';
+}
+function matchTipoFrota(text){
+  const n = normalizeHeader(text);
+  if(n.includes('propria')) return 'propria';
+  if(n.includes('spot')) return 'spot';
+  if(n.includes('agregado') || n.includes('terceiro')) return 'agregado';
+  return 'propria';
+}
+function matchStatusImport(text){
+  const n = normalizeHeader(text);
+  if(n.includes('pernoite')) return 'pernoite';
+  if(n.includes('manutenc')) return 'manutencao';
+  if(n.includes('viagem')) return 'viagem';
+  if(n.includes('reserva')) return 'reserva';
+  if(n.includes('bloq')) return 'bloqueado';
+  return 'livre';
+}
+
+function confirmImport(){
+  const mode = document.getElementById('importMode').value;
+  const mapped = importParsedRows.map(r=>{
+    const get = key => importMapping[key] ? String(r[importMapping[key]] ?? '').trim() : '';
+    const placa = get('placa').toUpperCase().replace(/\s+/g,'');
+    if(!placa) return null;
+    const capMin = parseInt(get('capMin')) || 0;
+    const capMax = parseInt(get('capMax')) || (capMin || 1000);
+    return {
+      placa,
+      modelo: get('modelo') || '—',
+      motorista: get('motorista') || '—',
+      transportadora: get('transportadora') || '—',
+      tipoFrota: matchTipoFrota(get('tipoFrota')),
+      perfil: matchPerfil(get('perfil')),
+      status: matchStatusImport(get('status')),
+      capMin, capMax,
+      upd: 'importado',
+    };
+  }).filter(Boolean);
+
+  if(mapped.length === 0){
+    showToast('Nenhuma linha com Placa válida foi encontrada para importar.', 'info', 'fa-circle-exclamation');
+    return;
+  }
+
+  if(mode === 'replace'){
+    fleet = mapped.map(v=>Object.assign({diasParado:0, validadoEm:null}, v));
+    fleet.forEach(v=>logVehicleEvent(v.placa, 'criado', 'Veículo importado via planilha (substituição total).'));
+  } else {
+    mapped.forEach(nv=>{
+      const idx = fleet.findIndex(v=>v.placa === nv.placa);
+      if(idx >= 0){
+        fleet[idx] = Object.assign({}, fleet[idx], nv);
+        logVehicleEvent(nv.placa, 'editado', 'Dados atualizados via importação de planilha.');
+      } else {
+        fleet.push(Object.assign({diasParado:0, validadoEm:null}, nv));
+        logVehicleEvent(nv.placa, 'criado', 'Veículo importado via planilha.');
+      }
+    });
+  }
+
+  closeImportModal();
+  renderTable();
+  refreshAnalytics();
+  saveToStorage();
+  pushToSheets(true);
+  showToast(mapped.length + ' veículo(s) importado(s) com sucesso.', 'success', 'fa-file-import');
 }
 
 /* ==========================================================================
